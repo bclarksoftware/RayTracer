@@ -20,6 +20,11 @@ Color::Color(double r, double g, double b, double a)
     this->setRGBA(r, g, b, a);
 }
 
+Color::Color(std::shared_ptr<Color> color)
+{
+    setFromColor(color);
+}
+
 Color::~Color()
 {
 

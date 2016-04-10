@@ -19,6 +19,7 @@ public:
     Color();
     Color(double r, double g, double b);
     Color(double r, double g, double b, double a);
+    Color(std::shared_ptr<Color> color);
     ~Color();
     
     color_t getColor();
