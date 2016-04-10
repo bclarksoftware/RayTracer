@@ -14,6 +14,7 @@ HOW TO COMPILE:
    towards your eigen install directory.
  - cd into project root directory.
  - mkdir build
+ - cd build
  - cmake .. OR cmake -G Xcode ..
  - make -j8 OR open xcode project.
 
