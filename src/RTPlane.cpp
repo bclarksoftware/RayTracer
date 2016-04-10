@@ -24,6 +24,16 @@ RTPlane::~RTPlane()
     
 }
 
+Eigen::Vector3d RTPlane::getNormal()
+{
+    return this->normal;
+}
+
+double RTPlane::getDistance()
+{
+    return this->distance;
+}
+
 void RTPlane::setNormal(double a, double b, double c)
 {
     this->normal = Vector3d(a, b, c);

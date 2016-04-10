@@ -20,6 +20,9 @@ public:
     virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
                                                 Eigen::Vector3d d);
 
+    Eigen::Vector3d getCenter();
+    double getRadius();
+    
     void setCenter(double x, double y, double z);
     void setRadius(double r);
     

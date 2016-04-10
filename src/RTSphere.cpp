@@ -24,6 +24,16 @@ RTSphere::~RTSphere()
 
 }
 
+Eigen::Vector3d RTSphere::getCenter()
+{
+    return this->center;
+}
+
+double RTSphere::getRadius()
+{
+    return this->radius;
+}
+
 void RTSphere::setCenter(double x, double y, double z)
 {
     this->center = Vector3d(x, y, z);

@@ -2,7 +2,7 @@
 #define __PARSER_H__
 
 #include <stdlib.h>
-#include <string>
+#include <string.h>
 #include <vector>
 #include <fstream>
 
@@ -11,6 +11,9 @@
 #include "RTObject.h"
 #include "RTSphere.h"
 #include "RTPlane.h"
+
+#define EIGEN_DONT_ALIGN_STATICALLY
+#include <Eigen/Dense>
 
 class Parser {
 public:
@@ -24,7 +27,6 @@ public:
     std::vector<std::shared_ptr<RTObject>> getObjects();
 
 private:
-    
     std::string sceneFileName;
     
     std::shared_ptr<Camera> camera;
@@ -33,8 +35,10 @@ private:
     std::vector<std::shared_ptr<RTObject>> objects;
     
     void parseCamera(std::ifstream* readFile);
+    void parseLight(std::ifstream* readFile);
+    
     void parseSphere(std::ifstream* readFile);
-
+    void parsePlane(std::ifstream* readFile);
 };
 
 #endif //__PARSER_H__

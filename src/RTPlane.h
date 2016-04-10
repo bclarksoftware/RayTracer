@@ -20,6 +20,9 @@ public:
     virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
                                                                Eigen::Vector3d d);
     
+    Eigen::Vector3d getNormal();
+    double getDistance();
+    
     void setNormal(double a, double b, double c);
     void setDistance(double distance);
     

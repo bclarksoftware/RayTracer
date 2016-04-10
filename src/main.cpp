@@ -39,7 +39,7 @@ int main( int argc, const char* argv[] )
         }
     }
     
-    cout << "width: " << width << ", height: " << height << ", file: " << sceneFileName << endl;
+    cout << "width: " << width << ", height: " << height << ", file: " << sceneFileName << "\n" << endl;
     
     scene = make_shared<Scene>(width, height, sceneFileName);
     

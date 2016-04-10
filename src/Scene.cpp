@@ -33,26 +33,26 @@ Scene::~Scene()
 
 void Scene::parseScene()
 {
-//    parser->parseScene();
+    parser->parseScene();
     
-//    camera = parser->getCamera();
-//    lights = parser->getLights();
-//    objects = parser->getObjects();
+    camera = parser->getCamera();
+    lights = parser->getLights();
+    objects = parser->getObjects();
     
-    camera->setLocation(0, 0, 14);
-    camera->setUp(0, 1, 0);
-    camera->setRight(1.33333, 0, 0);
-    camera->setLookAt(0, 0, 0);
+//    camera->setLocation(0, 0, 14);
+//    camera->setUp(0, 1, 0);
+//    camera->setRight(1.33333, 0, 0);
+//    camera->setLookAt(0, 0, 0);
     
     // Testing Data: Simple.pov
-    shared_ptr<RTSphere> testSphere1 = make_shared<RTSphere>(0.0, 0.0, 0.0, 2.0);
-    testSphere1->setColor(1.0, 0.0, 1.0);
-    
-    shared_ptr<RTPlane> testPlane1 = make_shared<RTPlane>(0.0, 1.0, 0.0, -4.0);
-    testPlane1->setColor(0.2, 0.2, 0.8);
-    
-    objects.push_back(testSphere1);
-    objects.push_back(testPlane1);
+//    shared_ptr<RTSphere> testSphere1 = make_shared<RTSphere>(0.0, 0.0, 0.0, 2.0);
+//    testSphere1->setColor(1.0, 0.0, 1.0);
+//    
+//    shared_ptr<RTPlane> testPlane1 = make_shared<RTPlane>(0.0, 1.0, 0.0, -4.0);
+//    testPlane1->setColor(0.2, 0.2, 0.8);
+//    
+//    objects.push_back(testSphere1);
+//    objects.push_back(testPlane1);
     
     // Testing Data: Spheres.pov
 //    shared_ptr<RTSphere> testSphere1 = make_shared<RTSphere>(0.0, 0.0, 0.0, 1.01);
