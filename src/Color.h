@@ -2,6 +2,7 @@
 #define __COLOR_H__
 
 #include <stdlib.h>
+#include <memory>
 
 #define EIGEN_DONT_ALIGN_STATICALLY
 #include <Eigen/Dense>
