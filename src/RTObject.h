@@ -2,6 +2,7 @@
 #define __RTOBJECT_H__
 
 #include <stdlib.h>
+#include <string>
 #include "Color.h"
 #include "RTIntersectObject.h"
 
@@ -13,16 +14,19 @@ public:
     RTObject();
     ~RTObject();
     
-    virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
-                                                Eigen::Vector3d d) = 0;
-    
     void setColor(std::shared_ptr<Color> color);
     void setColor(double r, double g, double b);
     
     std::shared_ptr<Color> getColor();
     
+    virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
+                                                Eigen::Vector3d d) = 0;
+    virtual std::string toString() = 0;
+    
     double ambient;
     double diffuse;
+    double specular;
+    double roughness;
     
     Eigen::Vector3d translate;
     

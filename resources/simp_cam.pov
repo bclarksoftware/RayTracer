@@ -1,36 +1,36 @@
 // cs174, assignment 1 sample file (RIGHT HANDED)
 
 //default camera pointing down negative z - case 0
-//camera {
-//location  <0, 0, 14>
-//up        <0,  1,  0>
-//right     <1.33333, 0,  0>
-//look_at   <0, 0, 0>
-//}
-
-//camera pointing down positive x - case 1
-//camera {
-//location  <-14, 0,0> 
-//up        <0,  1,  0>
-//right     <0, 0,  1.3333>
-//look_at   <0, 0, 0>
-//}
-
-//camera pointing down negative x - case 2
 camera {
-location  <14, 0,0> 
+location  <0, 0, 14>
 up        <0,  1,  0>
-right     <0, 0,  -1.3333>
+right     <1.33333, 0,  0>
 look_at   <0, 0, 0>
 }
 
+//camera pointing down positive x - case 1
+// camera {
+// location  <-14, 0,0> 
+// up        <0,  1,  0>
+// right     <0, 0,  1.3333>
+// look_at   <0, 0, 0>
+// }
+
+//camera pointing down negative x - case 2
+// camera {
+// location  <14, 0,0> 
+// up        <0,  1,  0>
+// right     <0, 0,  -1.3333>
+// look_at   <0, 0, 0>
+// }
+
 //camera pointing around 45 degrees
-//camera {
-//location  <7, 0,7> 
-//up        <0,  1,  0>
-//right     <.94, 0,  -.94>
-//look_at   <0, 0, 0>
-//}
+// camera {
+// location  <7, 0,7> 
+// up        <0,  1,  0>
+// right     <.94, 0,  -.94>
+// look_at   <0, 0, 0>
+// }
 
 
 light_source {<-100, 100, 100> color rgb <1.5, 1.5, 1.5>}

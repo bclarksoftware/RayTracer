@@ -67,7 +67,7 @@ void Color::setAlpha(double a)
 
 string Color::toString()
 {
-    return (string("<") + to_string(this->color.r) + string(", ")
-            + to_string(this->color.g) + string(", ") + to_string(this->color.b)
-            + string(">"));
+    return ("<" + to_string(this->color.r) + ", "
+            + to_string(this->color.g) + ", " + to_string(this->color.b)
+            + ">\n");
 }

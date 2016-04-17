@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
+#include <string>
 
 #define EIGEN_DONT_ALIGN_STATICALLY
 #include <Eigen/Dense>
@@ -17,14 +18,15 @@ public:
     RTSphere(double centerX, double centerY, double centerZ, double radius);
     ~RTSphere();
     
-    virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
-                                                Eigen::Vector3d d);
-
     Eigen::Vector3d getCenter();
     double getRadius();
     
     void setCenter(double x, double y, double z);
     void setRadius(double r);
+    
+    virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
+                                                Eigen::Vector3d d);
+    virtual std::string toString();
     
 private:
     

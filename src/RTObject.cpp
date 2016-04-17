@@ -9,6 +9,8 @@ RTObject::RTObject()
     
     ambient = 0.0;
     diffuse = 0.0;
+    specular = 0.0;
+    roughness = 0.0;
     
     translate = Vector3d(0.0, 0.0, 0.0);
 }

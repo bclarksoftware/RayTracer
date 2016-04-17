@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
+#include <string>
 
 #define EIGEN_DONT_ALIGN_STATICALLY
 #include <Eigen/Dense>
@@ -17,14 +18,15 @@ public:
     RTPlane(double a, double b, double c, double distance);
     ~RTPlane();
     
-    virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
-                                                               Eigen::Vector3d d);
-    
     Eigen::Vector3d getNormal();
     double getDistance();
     
     void setNormal(double a, double b, double c);
     void setDistance(double distance);
+    
+    virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
+                                                               Eigen::Vector3d d);
+    virtual std::string toString();
     
 private:
     

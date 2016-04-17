@@ -49,3 +49,16 @@ void Light::setColor(std::shared_ptr<Color> color)
 {
     this->color->setFromColor(color);
 }
+
+string Light::toString()
+{
+    string str0 = "Light:\n";
+    
+    string str1 = "\tLocation: <" + to_string(this->location.x()) + ", "
+                    + to_string(this->location.y()) + ", " + to_string(this->location.z())
+                    + ">\n";
+    
+    string str2 = "\tColor: " + this->color->toString();
+    
+    return (str0 + str1 + str2);
+}

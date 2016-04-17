@@ -2,6 +2,7 @@
 #define __LIGHT_H__
 
 #include <stdlib.h>
+#include <string>
 #include "Color.h"
 
 #define EIGEN_DONT_ALIGN_STATICALLY
@@ -21,6 +22,8 @@ public:
     void setLocation(double x, double y, double z);
     
     void setColor(std::shared_ptr<Color> color);
+    
+    std::string toString();
 
 private:
     Eigen::Vector3d location;

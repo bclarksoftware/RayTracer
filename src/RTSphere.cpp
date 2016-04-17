@@ -86,3 +86,20 @@ shared_ptr<RTIntersectObject> RTSphere::getIntersection(Vector3d Po, Vector3d d)
     
     return hitData;
 }
+
+string RTSphere::toString()
+{
+    string str0 = "Sphere:\n";
+    
+    string str1 = "\tCenter: <" + to_string(this->center.x()) + ", " + to_string(this->center.y())
+                    + ", " + to_string(this->center.z()) + ">\n";
+    
+    string str2 = "\tRadius: " + to_string(this->radius) + "\n";
+    
+    string str3 = "\tAmbient: " + to_string(this->ambient) + "\n";
+    string str4 = "\tDiffuse: " + to_string(this->diffuse) + "\n";
+    string str5 = "\tSpecular: " + to_string(this->specular) + "\n";
+    string str6 = "\tRoughness: " + to_string(this->roughness) + "\n";
+    
+    return (str0 + str1 + str2 + str3 + str4 + str5 + str6);
+}

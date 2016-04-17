@@ -93,7 +93,7 @@ void Parser::parseCamera(ifstream* readFile)
                     temp = strtok(NULL, " ,");
                 }
                 
-                camera->setLocation(vals[0], vals[1], vals[2]);
+                camera->setLocation(new Vector3d(vals[0], vals[1], vals[2]));
             }
             else if (value.compare("up") == 0)
             {
@@ -106,7 +106,7 @@ void Parser::parseCamera(ifstream* readFile)
                     temp = strtok(NULL, " ,");
                 }
                 
-                camera->setUp(vals[0], vals[1], vals[2]);
+                camera->setUp(new Vector3d(vals[0], vals[1], vals[2]));
             }
             else if (value.compare("right") == 0)
             {
@@ -119,7 +119,7 @@ void Parser::parseCamera(ifstream* readFile)
                     temp = strtok(NULL, " ,");
                 }
                 
-                camera->setRight(vals[0], vals[1], vals[2]);
+                camera->setRight(new Vector3d(vals[0], vals[1], vals[2]));
             }
             else if (value.compare("look_at") == 0)
             {
@@ -132,7 +132,7 @@ void Parser::parseCamera(ifstream* readFile)
                     temp = strtok(NULL, " ,");
                 }
                 
-                camera->setLookAt(vals[0], vals[1], vals[2]);
+                camera->setLookAt(new Vector3d(vals[0], vals[1], vals[2]));
             }
         }
     }
@@ -255,8 +255,34 @@ void Parser::parseSphere(ifstream* readFile)
             }
             else if (value.compare("finish") == 0)
             {
-                //TODO: Implement Me
-//                cout << "finish" << endl;
+                string subLine = line.substr(line.find_first_of("{") + 1, line.find_last_of("}") - 1);
+                
+                char* temp = strtok((char*)subLine.c_str(), " ");
+                while (temp != NULL)
+                {
+                    if (string(temp) == "ambient")
+                    {
+                        temp = strtok(NULL, " ");
+                        newSphere->ambient = stod(string(temp));
+                    }
+                    else if (string(temp) == "diffuse")
+                    {
+                        temp = strtok(NULL, " ");
+                        newSphere->diffuse = stod(string(temp));
+                    }
+                    else if (string(temp) == "specular")
+                    {
+                        temp = strtok(NULL, " ");
+                        newSphere->specular = stod(string(temp));
+                    }
+                    else if (string(temp) == "roughness")
+                    {
+                        temp = strtok(NULL, " ");
+                        newSphere->roughness = stod(string(temp));
+                    }
+                    
+                    temp = strtok(NULL, " ");
+                }
             }
             else if (value.compare("translate") == 0)
             {
@@ -336,8 +362,34 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("finish") == 0)
             {
-                //TODO: Implement Me
-                //                cout << "finish" << endl;
+                string subLine = line.substr(line.find_first_of("{") + 1, line.find_last_of("}") - 1);
+                
+                char* temp = strtok((char*)subLine.c_str(), " ");
+                while (temp != NULL)
+                {
+                    if (string(temp) == "ambient")
+                    {
+                        temp = strtok(NULL, " ");
+                        newPlane->ambient = stod(string(temp));
+                    }
+                    else if (string(temp) == "diffuse")
+                    {
+                        temp = strtok(NULL, " ");
+                        newPlane->diffuse = stod(string(temp));
+                    }
+                    else if (string(temp) == "specular")
+                    {
+                        temp = strtok(NULL, " ");
+                        newPlane->specular = stod(string(temp));
+                    }
+                    else if (string(temp) == "roughness")
+                    {
+                        temp = strtok(NULL, " ");
+                        newPlane->roughness = stod(string(temp));
+                    }
+                    
+                    temp = strtok(NULL, " ");
+                }
             }
             else if (value.compare("translate") == 0)
             {

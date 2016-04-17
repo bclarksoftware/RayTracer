@@ -2,34 +2,34 @@
 #define __CAMERA_H__
 
 #include <stdlib.h>
+#include <string>
+
+#define EIGEN_DONT_ALIGN_STATICALLY
+#include <Eigen/Dense>
 
 class Camera {
 public:
     Camera();
     ~Camera();
     
-    void setLocation(double x, double y, double z);
-    void setUp(double x, double y, double z);
-    void setRight(double x, double y, double z);
-    void setLookAt(double x, double y, double z);
+    void setLocation(Eigen::Vector3d* location);
+    void setUp(Eigen::Vector3d* up);
+    void setRight(Eigen::Vector3d* right);
+    void setLookAt(Eigen::Vector3d* lookAt);
     
-    double locX;
-    double locY;
-    double locZ;
+    Eigen::Vector3d* getLocation();
+    Eigen::Vector3d* getUp();
+    Eigen::Vector3d* getRight();
+    Eigen::Vector3d* getLookAt();
     
-    double upX;
-    double upY;
-    double upZ;
-    
-    double rightX;
-    double rightY;
-    double rightZ;
-    
-    double lookAtX;
-    double lookAtY;
-    double lookAtZ;
+    std::string toString();
 
 private:
+    
+    Eigen::Vector3d* location;
+    Eigen::Vector3d* up;
+    Eigen::Vector3d* right;
+    Eigen::Vector3d* lookAt;
 
 };
 

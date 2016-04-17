@@ -71,3 +71,20 @@ shared_ptr<RTIntersectObject> RTPlane::getIntersection(Vector3d Po, Vector3d d)
     
     return hitData;
 }
+
+string RTPlane::toString()
+{
+    string str0 = "Plane:\n";
+    
+    string str1 = "\tNormal: <" + to_string(this->normal.x()) + ", " + to_string(this->normal.y())
+    + ", " + to_string(this->normal.z()) + ">\n";
+    
+    string str2 = "\tDistance: " + to_string(this->distance) + "\n";
+    
+    string str3 = "\tAmbient: " + to_string(this->ambient) + "\n";
+    string str4 = "\tDiffuse: " + to_string(this->diffuse) + "\n";
+    string str5 = "\tSpecular: " + to_string(this->specular) + "\n";
+    string str6 = "\tRoughness: " + to_string(this->roughness) + "\n";
+    
+    return (str0 + str1 + str2 + str3 + str4 + str5 + str6);
+}
