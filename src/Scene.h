@@ -17,7 +17,7 @@
 
 class Scene {
 public:
-    Scene(int width, int height, std::string sceneFileName);
+    Scene(int width, int height, std::string sceneFileName, int shadeType);
     ~Scene();
     
     // Initialize data structures by parsing.
@@ -32,6 +32,8 @@ public:
 private:
     int pixelW;
     int pixelH;
+    
+    int shadeType;
     
     std::string sceneFileName;
     std::string imageName;

@@ -8,6 +8,8 @@
 #define EIGEN_DONT_ALIGN_STATICALLY
 #include <Eigen/Dense>
 
+class RTObject;
+
 class RTIntersectObject {
 public:
     RTIntersectObject();
@@ -24,10 +26,15 @@ public:
     void setColor(std::shared_ptr<Color> color);
     std::shared_ptr<Color> getColor();
     
+    void setHitObject(RTObject* hitObject);
+    RTObject* getHitObject();
+    
 private:
     bool isIntersected;
     double tValue;
     std::shared_ptr<Color> color;
+    
+    RTObject* hitObject;
 };
 
 #endif // __RTINTERSECTOBJECT_H__

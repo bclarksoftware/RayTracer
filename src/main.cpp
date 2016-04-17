@@ -9,16 +9,16 @@
 
 using namespace std;
 
-int width, height;
+int width, height, shadeType;
 string sceneFileName;
 shared_ptr<Scene> scene;
 
 int main( int argc, const char* argv[] )
 {
     // Check if we have all the arguments.
-    if (argc < 4 || argc > 4)
+    if (argc < 4 || argc > 5)
     {
-        cout << "Incorrect input. Use: ./raytrace [width] [height] [.pov]" << endl;
+        cout << "Incorrect input. Use: ./raytrace [width] [height] [.pov] ?[Shader Integer]" << endl;
         return 0;
     }
     else
@@ -37,11 +37,24 @@ int main( int argc, const char* argv[] )
             cerr << "Invalid number " << argv[2] << '\n';
             return 0;
         }
+        if (argc == 5)
+        {
+            istringstream shadingArg(argv[4]);
+            if (!(shadingArg >> shadeType) || shadeType < 0 || shadeType > 1)
+            {
+                cerr << "Invalid number " << argv[4] << '\n';
+                return 0;
+            }
+        }
+        else
+        {
+            shadeType = 0;
+        }
     }
     
-    cout << "width: " << width << ", height: " << height << ", file: " << sceneFileName << "\n" << endl;
+    cout << "width: " << width << ", height: " << height << ", file: " << sceneFileName << ", shadeType: " << shadeType << "\n" << endl;
     
-    scene = make_shared<Scene>(width, height, sceneFileName);
+    scene = make_shared<Scene>(width, height, sceneFileName, shadeType);
     
     scene->parseScene();
     

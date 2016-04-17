@@ -1,6 +1,7 @@
 #include "Color.h"
 
 using namespace std;
+using namespace Eigen;
 
 Color::Color()
 {
@@ -42,6 +43,21 @@ void Color::setRGB(double r, double g, double b)
     this->color.b = b;
 }
 
+void Color::setRGB(Vector3d color)
+{
+    this->color.r = color.x();
+    this->color.g = color.y();
+    this->color.b = color.z();
+}
+
+void Color::setRGBA(Vector4d color)
+{
+    this->color.r = color.x();
+    this->color.g = color.y();
+    this->color.b = color.z();
+    this->color.f = color.w();
+}
+
 void Color::setRGBA(double r, double g, double b, double a)
 {
     this->color.r = r;
@@ -63,6 +79,16 @@ void Color::setFromColor(std::shared_ptr<Color> color)
 void Color::setAlpha(double a)
 {
     this->color.f = a;
+}
+
+Vector3d Color::getRGB()
+{
+    return Vector3d(this->color.r, this->color.g, this->color.b);
+}
+
+Vector4d Color::getRGBA()
+{
+    return Vector4d(this->color.r, this->color.g, this->color.b, this->color.f);
 }
 
 string Color::toString()

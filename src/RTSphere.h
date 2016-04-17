@@ -26,6 +26,7 @@ public:
     
     virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
                                                 Eigen::Vector3d d);
+    virtual Eigen::Vector3d getNormal(Eigen::Vector3d hitPoint);
     virtual std::string toString();
     
 private:

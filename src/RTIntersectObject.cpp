@@ -7,6 +7,7 @@ RTIntersectObject::RTIntersectObject()
     this->tValue = -1.0;
     this->isIntersected = false;
     this->color = make_shared<Color>();
+    this->hitObject = NULL;
 }
 
 RTIntersectObject::~RTIntersectObject()
@@ -49,4 +50,14 @@ void RTIntersectObject::setColor(std::shared_ptr<Color> color)
 shared_ptr<Color> RTIntersectObject::getColor()
 {
     return this->color;
+}
+
+void RTIntersectObject::setHitObject(RTObject* hitObject)
+{
+    this->hitObject = hitObject;
+}
+
+RTObject* RTIntersectObject::getHitObject()
+{
+    return this->hitObject;
 }

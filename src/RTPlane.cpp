@@ -24,7 +24,7 @@ RTPlane::~RTPlane()
     
 }
 
-Eigen::Vector3d RTPlane::getNormal()
+Eigen::Vector3d RTPlane::getNormal(Vector3d hitPoint)
 {
     return this->normal;
 }
@@ -66,6 +66,7 @@ shared_ptr<RTIntersectObject> RTPlane::getIntersection(Vector3d Po, Vector3d d)
             this->hitData->setIntersected(true);
             this->hitData->setTValue(t);
             this->hitData->setColor(this->getColor());
+            this->hitData->setHitObject(this);
         }
     }
     

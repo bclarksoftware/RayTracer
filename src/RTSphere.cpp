@@ -63,6 +63,7 @@ shared_ptr<RTIntersectObject> RTSphere::getIntersection(Vector3d Po, Vector3d d)
         this->hitData->setIntersected(true);
         this->hitData->setTValue(t);
         this->hitData->setColor(this->getColor());
+        this->hitData->setHitObject(this);
     }
     else
     {
@@ -80,11 +81,17 @@ shared_ptr<RTIntersectObject> RTSphere::getIntersection(Vector3d Po, Vector3d d)
                 this->hitData->setIntersected(true);
                 this->hitData->setTValue(t);
                 this->hitData->setColor(this->getColor());
+                this->hitData->setHitObject(this);
             }
         }
     }
     
     return hitData;
+}
+
+Vector3d RTSphere::getNormal(Eigen::Vector3d hitPoint)
+{
+    return (hitPoint - this->center) / this->radius;
 }
 
 string RTSphere::toString()

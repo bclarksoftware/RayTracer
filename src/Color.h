@@ -24,11 +24,19 @@ public:
     ~Color();
     
     color_t getColor();
+    
     void setRGB(double r, double g, double b);
+    void setRGB(Eigen::Vector3d color);
+    
     void setRGBA(double r, double g, double b, double a);
+    void setRGBA(Eigen::Vector4d color);
+    
     void setFromColor(color_t color);
     void setFromColor(std::shared_ptr<Color> color);
     void setAlpha(double a);
+    
+    Eigen::Vector3d getRGB();
+    Eigen::Vector4d getRGBA();
     
     std::string toString();
     

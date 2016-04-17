@@ -18,7 +18,6 @@ public:
     RTPlane(double a, double b, double c, double distance);
     ~RTPlane();
     
-    Eigen::Vector3d getNormal();
     double getDistance();
     
     void setNormal(double a, double b, double c);
@@ -26,6 +25,7 @@ public:
     
     virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
                                                                Eigen::Vector3d d);
+    virtual Eigen::Vector3d getNormal(Eigen::Vector3d hitPoint);
     virtual std::string toString();
     
 private:
