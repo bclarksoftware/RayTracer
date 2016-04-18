@@ -17,7 +17,8 @@
 
 class Scene {
 public:
-    Scene(int width, int height, std::string sceneFileName, int shadeType);
+    Scene(int width, int height, std::string sceneFileName, int shadeType, int debug,
+          std::vector<std::pair<int,int>> indices);
     ~Scene();
     
     // Initialize data structures by parsing.
@@ -44,6 +45,9 @@ private:
     
     std::vector<std::shared_ptr<Light>> lights;
     std::vector<std::shared_ptr<RTObject>> objects;
+    
+    int debug;
+    std::vector<std::pair<int,int>> testPixels;
 
 };
 

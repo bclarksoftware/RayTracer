@@ -6,17 +6,31 @@
 #include <sstream>
 
 #include "Scene.h"
+#include <vector>
 
 using namespace std;
 
-int width, height, shadeType;
+int width, height, shadeType, debug;
+vector<pair<int, int>> indices;
 string sceneFileName;
 shared_ptr<Scene> scene;
+
+void createTest()
+{
+    indices.push_back(pair<int,int>(320, 239));
+    indices.push_back(pair<int,int>(360, 219));
+    indices.push_back(pair<int,int>(230, 239));
+    indices.push_back(pair<int,int>(120, 349));
+    indices.push_back(pair<int,int>(490, 119));
+    indices.push_back(pair<int,int>(320, 50));
+    indices.push_back(pair<int,int>(50, 240));
+    indices.push_back(pair<int,int>(590, 240));
+}
 
 int main( int argc, const char* argv[] )
 {
     // Check if we have all the arguments.
-    if (argc < 4 || argc > 5)
+    if (argc < 4 || argc > 6)
     {
         cout << "Incorrect input. Use: ./raytrace [width] [height] [.pov] ?[Shader Integer]" << endl;
         return 0;
@@ -50,11 +64,28 @@ int main( int argc, const char* argv[] )
         {
             shadeType = 0;
         }
+        if (argc == 6)
+        {
+            istringstream debugArg(argv[5]);
+            if (!(debugArg >> debug) || shadeType < 0 || shadeType > 1)
+            {
+                cerr << "Invalid number " << argv[4] << '\n';
+                return 0;
+            }
+            else
+            {
+                createTest();
+            }
+        }
+        else
+        {
+            debug = 0;
+        }
     }
     
     cout << "width: " << width << ", height: " << height << ", file: " << sceneFileName << ", shadeType: " << shadeType << "\n" << endl;
     
-    scene = make_shared<Scene>(width, height, sceneFileName, shadeType);
+    scene = make_shared<Scene>(width, height, sceneFileName, shadeType, debug, indices);
     
     scene->parseScene();
     
