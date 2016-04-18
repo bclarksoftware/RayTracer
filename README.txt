@@ -5,9 +5,9 @@
  *===============================
 
 COMPLETENESS:
- - Program 1 is "all fine".
- - Outputs correct values as specified in the unit tests.
- - Meets all goals of Program 1.
+ - Program 2 is "all fine".
+ - Meets all goals of Program 2.
+ - The second BRDF is just Lambertian Reflection, a simplified version of Phong.
 
 HOW TO COMPILE:
  - Set 'EIGEN3_INCLUDE_DIR' environment variable to point 
@@ -20,6 +20,8 @@ HOW TO COMPILE:
 
 HOW TO RUN:
  - If running in terminal:
-      - ./raytrace 640 480 ../resources/spheres.pov (for example)
+      - ./raytrace 640 480 ../resources/spheres.pov [0 || 1](Shading) [0 || 1](Debug)
  - If running in xcode:
       - Edit your scheme to reflect the arguments above.
+
+Example Images may be found within the resources directory.
