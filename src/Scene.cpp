@@ -109,13 +109,15 @@ void Scene::render()
                                                          
                 // Calculate d for light.
                 Vector3d dLight = (lights[0]->getLocation() - hitPoint).normalized();
+                double distToLight = (lights[0]->getLocation() - hitPoint).norm();
                 
                 // Loop over objects to determine lighting.
                 for (int k = 0; k < objects.size(); k++)
                 {
                     shared_ptr<RTIntersectObject> intersectObj = objects[k]->getIntersection(hitPoint, dLight);
-                    
-                    if (intersectObj->hasIntersected())
+                    double nextTValue = intersectObj->getTValue();
+
+                    if (intersectObj->hasIntersected() && nextTValue >= 0.0 && nextTValue <= distToLight)
                     {
                         if (intersectObj.get() != closestObject)
                         {
