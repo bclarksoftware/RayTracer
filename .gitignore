@@ -32,3 +32,6 @@ build/
 
 #images from output
 resources/*.tga
+
+#CLion IDE Build Directory
+.idea
