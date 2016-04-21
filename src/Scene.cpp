@@ -84,6 +84,9 @@ void Scene::render()
             
             // Calculate d
             Vector3d d = (Us * uVec) + (Vs * vVec) - (1.0 * wVec);
+            d.normalize();
+            
+            Vector3d ambient, diffuse, specular, lightVector;
             
             // Check Intersect with Objects
             for (int k = 0; k < objects.size(); k++)
@@ -127,9 +130,10 @@ void Scene::render()
                     }
                 }
                 
-                Vector3d lightVector = lights[0]->getLocation() - hitPoint;
+                lightVector = Vector3d(0.0, 0.0, 0.0);
+                lightVector = lights[0]->getLocation() - hitPoint;
                 lightVector.normalize();
-                Vector3d viewVector = *Po - hitPoint;
+                Vector3d viewVector = (*Po - hitPoint).normalized();
                 
                 Vector3d Ka = closestObject->getHitObject()->ambient
                                 * closestObject->getHitObject()->getColor()->getRGB();
@@ -141,7 +145,7 @@ void Scene::render()
                 double NdotL = max(N.dot(lightVector), 0.0);
                 Vector3d halfVector = (viewVector + lightVector).normalized();
                 
-                Vector3d ambient = Vector3d(0.0, 0.0, 0.0);
+                ambient = Vector3d(0.0, 0.0, 0.0);
                 ambient[0] = lights[0]->getColor()->getRGB().x() * Ka.x();
                 ambient[1] = lights[0]->getColor()->getRGB().y() * Ka.y();
                 ambient[2] = lights[0]->getColor()->getRGB().z() * Ka.z();
@@ -149,7 +153,7 @@ void Scene::render()
                 // If just lambertian, else do blinn phong shading.
                 if (shadeType == 1)
                 {
-                    Vector3d diffuse = Vector3d(0.0, 0.0, 0.0);
+                    diffuse = Vector3d(0.0, 0.0, 0.0);
                     
                     if(!lightHit)
                     {
@@ -168,8 +172,8 @@ void Scene::render()
                 else
                 {
                     // Blinn Phong Shading
-                    Vector3d diffuse = Vector3d(0.0, 0.0, 0.0);
-                    Vector3d specular = Vector3d(0.0, 0.0, 0.0);
+                    diffuse = Vector3d(0.0, 0.0, 0.0);
+                    specular = Vector3d(0.0, 0.0, 0.0);
                     
                     if (!lightHit)
                     {
@@ -217,12 +221,20 @@ void Scene::render()
                             {
                                 cout << "\tT: " << closestTValue << endl;
                                 color_t color = image->pixel(i, j);
-                                cout << "\tRGB: <" << color.r << ", " << color.g << ", " << color.b << ">" << endl;
+                                cout << "\tRGB: <" << color.r * 255.0 << ", " << color.g * 255.0 << ", " << color.b * 255.0 << ">" << endl;
+                                
+                                cout << "\tLight Vector: <" << + lightVector.x() << ", " << lightVector.y() << ", " << lightVector.z() << ">" << endl;
+                                cout << "\tAmbient: <" << ambient.x() * 255.0 << ", " << ambient.y() * 255.0 << ", " << ambient.z() * 255.0 << ">" << endl;
+                                cout << "\tDiffuse: <" << diffuse.x() * 255.0 << ", " << diffuse.y() * 255.0 << ", " << diffuse.z() * 255.0 << ">" << endl;
+                                cout << "\tSpecular: <" << specular.x() * 255.0 << ", " << specular.y() * 255.0 << ", " << specular.z() * 255.0 << ">" << endl;
                             }
                             else
                             {
                                 cout << "\tT: no hit" << endl;
                                 cout << "\tRGB: no hit" << endl;
+                                cout << "\tAmbient: no hit" << endl;
+                                cout << "\tDiffuse: no hit" << endl;
+                                cout << "\tSpecular: no hit" << endl;
                             }
                         }
                     }
