@@ -31,7 +31,6 @@ RTTriangle::~RTTriangle()
 
 shared_ptr<RTIntersectObject> RTTriangle::getIntersection(Vector3d Po, Vector3d d)
 {
-    // Need to implement this
     hitData->reset();
 
     Matrix3d A;
