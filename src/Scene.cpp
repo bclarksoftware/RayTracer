@@ -44,6 +44,11 @@ void Scene::parseScene()
     camera = parser->getCamera();
     lights = parser->getLights();
     objects = parser->getObjects();
+
+    for (shared_ptr<RTObject> obj: objects)
+    {
+        cout << obj->toString() << endl;
+    }
 }
 
 void Scene::render()

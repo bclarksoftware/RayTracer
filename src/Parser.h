@@ -11,6 +11,7 @@
 #include "RTObject.h"
 #include "RTSphere.h"
 #include "RTPlane.h"
+#include "RTTriangle.h"
 
 #define EIGEN_DONT_ALIGN_STATICALLY
 #include <Eigen/Dense>
@@ -39,6 +40,7 @@ private:
     
     void parseSphere(std::ifstream* readFile);
     void parsePlane(std::ifstream* readFile);
+    void parseTriangle(std::ifstream* readFile);
 };
 
 #endif //__PARSER_H__

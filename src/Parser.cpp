@@ -53,6 +53,11 @@ void Parser::parseScene()
             readFile.seekg(prevLine);
             parsePlane(&readFile);
         }
+        else if (value.compare("triangle") == 0)
+        {
+            readFile.seekg(prevLine);
+            parseTriangle(&readFile);
+        }
         
         prevLine = readFile.tellg();
     }
@@ -400,6 +405,120 @@ void Parser::parsePlane(std::ifstream* readFile)
     }
     
     this->objects.push_back(newPlane);
+}
+
+void Parser::parseTriangle(std::ifstream* readFile)
+{
+    int beginCurly, endCurly;
+    vector<double> vals;
+    string line;
+    bool keepParsing = true;
+
+    shared_ptr<RTTriangle> newTriangle = make_shared<RTTriangle>();
+
+    while(keepParsing)
+    {
+        string value;
+
+        getline(*readFile, line);
+
+        if ((beginCurly = line.find_first_of("{")) == string::npos && (endCurly = line.find_first_of("}")) != string::npos)
+        {
+            line = line.substr(0, endCurly);
+            keepParsing = false;
+        }
+        else
+        {
+            istringstream iss(line);
+            iss >> value;
+            vals.clear();
+
+            if (value.compare("triangle") == 0)
+            {
+                // Grab the three vertices.
+                for (int ndx = 0; ndx < 3; ndx++)
+                {
+                    getline(*readFile, line);
+
+                    line = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                    char* temp = strtok((char*)line.c_str(), " ,<>");
+                    while (temp != NULL)
+                    {
+                        vals.push_back(stod(string(temp)));
+                        temp = strtok(NULL, " ,<>");
+                    }
+                }
+
+                newTriangle->setVertices(Vector3d(vals[0], vals[1], vals[2]),
+                                         Vector3d(vals[3], vals[4], vals[5]),
+                                         Vector3d(vals[6], vals[7], vals[8]));
+            }
+            else if (value.compare("pigment") == 0)
+            {
+                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+
+                shared_ptr<Color> newColor = make_shared<Color>();
+
+                // if we find rgbf, get 4 values.
+                if (line.find("rgbf") != string::npos)
+                {
+                    newColor->setRGBA(vals[0], vals[1], vals[2], vals[3]);
+                    newTriangle->setColor(newColor);
+                }
+                else
+                {
+                    newColor->setRGB(vals[0], vals[1], vals[2]);
+                    newTriangle->setColor(newColor);
+                }
+            }
+            else if (value.compare("finish") == 0)
+            {
+                string subLine = line.substr(line.find_first_of("{") + 1, line.find_last_of("}") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ");
+                while (temp != NULL)
+                {
+                    if (string(temp) == "ambient")
+                    {
+                        temp = strtok(NULL, " ");
+                        newTriangle->ambient = stod(string(temp));
+                    }
+                    else if (string(temp) == "diffuse")
+                    {
+                        temp = strtok(NULL, " ");
+                        newTriangle->diffuse = stod(string(temp));
+                    }
+                    else if (string(temp) == "specular")
+                    {
+                        temp = strtok(NULL, " ");
+                        newTriangle->specular = stod(string(temp));
+                    }
+                    else if (string(temp) == "roughness")
+                    {
+                        temp = strtok(NULL, " ");
+                        newTriangle->roughness = stod(string(temp));
+                    }
+
+                    temp = strtok(NULL, " ");
+                }
+            }
+            else if (value.compare("translate") == 0)
+            {
+                //TODO: Implement Me
+                //                cout << "translate" << endl;
+            }
+        }
+    }
+
+    this->objects.push_back(newTriangle);
 }
 
 std::shared_ptr<Camera> Parser::getCamera()
