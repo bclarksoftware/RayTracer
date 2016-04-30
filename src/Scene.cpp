@@ -95,15 +95,96 @@ bool Scene::isObjectInShadow(RTIntersectObject* object, Vector3d hitPoint, Vecto
     return false;
 }
 
-//color_t Scene::getReflectColor(RTIntersectObject* object, Vector3d Po, Vector3d d)
-//{
-//
-//}
+color_t Scene::rayCast(Vector3d* Po, Vector3d d)
+{
+    color_t rtnClr;
+    Vector3d ambient, diffuse, specular, lightVector;
+
+    // Finds the closest intersected object.
+    RTIntersectObject* closestObject = getClosestIntersectedObject(Po, d);
+
+    if (closestObject != NULL)
+    {
+        Vector3d hitPoint = *Po + (closestObject->getTValue() * d);
+        Vector3d N = closestObject->getHitObject()->getNormal(hitPoint);
+
+        // Calculate d for light.
+        Vector3d dLight = (lights[0]->getLocation() - hitPoint).normalized();
+        double distToLight = (lights[0]->getLocation() - hitPoint).norm();
+
+        // Check if object is in shadowed area.
+        bool inShadow = isObjectInShadow(closestObject, hitPoint, dLight, distToLight);
+
+        lightVector = (lights[0]->getLocation() - hitPoint).normalized();
+        Vector3d viewVector = (*Po - hitPoint).normalized();
+
+        Vector3d Ka = closestObject->getHitObject()->ambient
+                      * closestObject->getHitObject()->getColor()->getRGB();
+        Vector3d Kd = closestObject->getHitObject()->diffuse
+                      * closestObject->getHitObject()->getColor()->getRGB();
+        Vector3d Ks = closestObject->getHitObject()->specular
+                      * closestObject->getHitObject()->getColor()->getRGB();
+
+        double NdotL = max(N.dot(lightVector), 0.0);
+        Vector3d halfVector = (viewVector + lightVector).normalized();
+
+        ambient = Vector3d(0.0, 0.0, 0.0);
+        ambient[0] = lights[0]->getColor()->getRGB().x() * Ka.x();
+        ambient[1] = lights[0]->getColor()->getRGB().y() * Ka.y();
+        ambient[2] = lights[0]->getColor()->getRGB().z() * Ka.z();
+
+        // If just lambertian, else do blinn phong shading.
+        if (shadeType == 1)
+        {
+            diffuse = Vector3d(0.0, 0.0, 0.0);
+
+            if(!inShadow)
+            {
+                diffuse[0] = lights[0]->getColor()->getRGB().x() * max(0.0, NdotL) * Kd.x();
+                diffuse[1] = lights[0]->getColor()->getRGB().y() * max(0.0, NdotL) * Kd.y();
+                diffuse[2] = lights[0]->getColor()->getRGB().z() * max(0.0, NdotL) * Kd.z();
+            }
+
+            Color* lambertianColor = new Color();
+            lambertianColor->setRGB(diffuse);
+            rtnClr = lambertianColor->getColor();
+            delete lambertianColor;
+        }
+        else
+        {
+            // Blinn Phong Shading
+            diffuse = Vector3d(0.0, 0.0, 0.0);
+            specular = Vector3d(0.0, 0.0, 0.0);
+
+            if (!inShadow)
+            {
+                diffuse[0] = lights[0]->getColor()->getRGB().x() * max(0.0, NdotL) * Kd.x();
+                diffuse[1] = lights[0]->getColor()->getRGB().y() * max(0.0, NdotL) * Kd.y();
+                diffuse[2] = lights[0]->getColor()->getRGB().z() * max(0.0, NdotL) * Kd.z();
+
+                specular [0] = lights[0]->getColor()->getRGB().x() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.x();
+                specular [1] = lights[0]->getColor()->getRGB().y() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.y();
+                specular [2] = lights[0]->getColor()->getRGB().z() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.z();
+            }
+
+            Color* blinnPhongColor = new Color();
+            blinnPhongColor->setRGB(ambient + diffuse + specular);
+            rtnClr = blinnPhongColor->getColor();
+            delete blinnPhongColor;
+        }
+    }
+    else
+    {
+        rtnClr.r = 0.0;
+        rtnClr.g = 0.0;
+        rtnClr.b = 0.0;
+    }
+
+    return rtnClr;
+}
 
 void Scene::render()
 {
-    RTIntersectObject* closestObject = NULL;
-    
     // Camera world location.
     Vector3d* Po = camera->getLocation();
     Vector3d* camRight = camera->getRight();
@@ -134,131 +215,46 @@ void Scene::render()
             
             // Calculate d
             Vector3d d = ((Us * uVec) + (Vs * vVec) - (1.0 * wVec)).normalized();
+
+            // Raycast returns the color of the pixel.
+            image->pixel(i, j, rayCast(Po, d));
             
-            Vector3d ambient, diffuse, specular, lightVector;
-
-            // Finds the closest intersected object.
-            closestObject = getClosestIntersectedObject(Po, d);
-            
-            if (closestObject != NULL)
-            {
-                Vector3d hitPoint = *Po + (closestObject->getTValue() * d);
-                Vector3d N = closestObject->getHitObject()->getNormal(hitPoint);
-                                                         
-                // Calculate d for light.
-                Vector3d dLight = (lights[0]->getLocation() - hitPoint).normalized();
-                double distToLight = (lights[0]->getLocation() - hitPoint).norm();
-
-                // Check if object is in shadowed area.
-                bool inShadow = isObjectInShadow(closestObject, hitPoint, dLight, distToLight);
-
-                lightVector = (lights[0]->getLocation() - hitPoint).normalized();
-                Vector3d viewVector = (*Po - hitPoint).normalized();
-                
-                Vector3d Ka = closestObject->getHitObject()->ambient
-                                * closestObject->getHitObject()->getColor()->getRGB();
-                Vector3d Kd = closestObject->getHitObject()->diffuse
-                                * closestObject->getHitObject()->getColor()->getRGB();
-                Vector3d Ks = closestObject->getHitObject()->specular
-                                * closestObject->getHitObject()->getColor()->getRGB();
-                
-                double NdotL = max(N.dot(lightVector), 0.0);
-                Vector3d halfVector = (viewVector + lightVector).normalized();
-                
-                ambient = Vector3d(0.0, 0.0, 0.0);
-                ambient[0] = lights[0]->getColor()->getRGB().x() * Ka.x();
-                ambient[1] = lights[0]->getColor()->getRGB().y() * Ka.y();
-                ambient[2] = lights[0]->getColor()->getRGB().z() * Ka.z();
-                
-                // If just lambertian, else do blinn phong shading.
-                if (shadeType == 1)
-                {
-                    diffuse = Vector3d(0.0, 0.0, 0.0);
-                    
-                    if(!inShadow)
-                    {
-                        diffuse[0] = lights[0]->getColor()->getRGB().x() * max(0.0, NdotL) * Kd.x();
-                        diffuse[1] = lights[0]->getColor()->getRGB().y() * max(0.0, NdotL) * Kd.y();
-                        diffuse[2] = lights[0]->getColor()->getRGB().z() * max(0.0, NdotL) * Kd.z();
-                    }
-                    
-                    Color* lambertianColor = new Color();
-                    lambertianColor->setRGB(diffuse);
-                    
-                    image->pixel(i, j, lambertianColor->getColor());
-                    
-                    delete lambertianColor;
-                }
-                else
-                {
-                    // Blinn Phong Shading
-                    diffuse = Vector3d(0.0, 0.0, 0.0);
-                    specular = Vector3d(0.0, 0.0, 0.0);
-                    
-                    if (!inShadow)
-                    {
-                        diffuse[0] = lights[0]->getColor()->getRGB().x() * max(0.0, NdotL) * Kd.x();
-                        diffuse[1] = lights[0]->getColor()->getRGB().y() * max(0.0, NdotL) * Kd.y();
-                        diffuse[2] = lights[0]->getColor()->getRGB().z() * max(0.0, NdotL) * Kd.z();
-                        
-                        specular [0] = lights[0]->getColor()->getRGB().x() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.x();
-                        specular [1] = lights[0]->getColor()->getRGB().y() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.y();
-                        specular [2] = lights[0]->getColor()->getRGB().z() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.z();
-                    }
-
-                    Color* blinnPhongColor = new Color();
-                    blinnPhongColor->setRGB(ambient + diffuse + specular);
-                    
-                    image->pixel(i, j, blinnPhongColor->getColor());
-                    
-                    delete blinnPhongColor;
-                }
-            }
-            else
-            {
-                color_t background;
-                background.r = 0.0;
-                background.g = 0.0;
-                background.b = 0.0;
-                image->pixel(i, j, background);
-            }
-            
-            if (debug)
-            {
-                for (int ndx = 0; ndx < testPixels.size(); ndx++)
-                {
-                    if (i == testPixels[ndx].first)
-                    {
-                        if (j == testPixels[ndx].second)
-                        {
-                            // Testing printouts.
-                            cout << "i: " << i << ", j: " << j << endl;
-                            cout << "\tPosition: <" << Po->x() << ", " << Po->y() << ", " << Po->z() << ">" << endl;
-                            cout << "\tDirection: <" << d.x() << ", " << d.y() << ", " << d.z() << ">" << endl;
-                            
-                            if (closestObject != NULL)
-                            {
-                                cout << "\tT: " << closestObject->getTValue() << endl;
-                                color_t color = image->pixel(i, j);
-                                cout << "\tRGB: <" << color.r * 255.0 << ", " << color.g * 255.0 << ", " << color.b * 255.0 << ">" << endl;
-                                
-                                cout << "\tLight Vector: <" << + lightVector.x() << ", " << lightVector.y() << ", " << lightVector.z() << ">" << endl;
-                                cout << "\tAmbient: <" << ambient.x() * 255.0 << ", " << ambient.y() * 255.0 << ", " << ambient.z() * 255.0 << ">" << endl;
-                                cout << "\tDiffuse: <" << diffuse.x() * 255.0 << ", " << diffuse.y() * 255.0 << ", " << diffuse.z() * 255.0 << ">" << endl;
-                                cout << "\tSpecular: <" << specular.x() * 255.0 << ", " << specular.y() * 255.0 << ", " << specular.z() * 255.0 << ">" << endl;
-                            }
-                            else
-                            {
-                                cout << "\tT: no hit" << endl;
-                                cout << "\tRGB: no hit" << endl;
-                                cout << "\tAmbient: no hit" << endl;
-                                cout << "\tDiffuse: no hit" << endl;
-                                cout << "\tSpecular: no hit" << endl;
-                            }
-                        }
-                    }
-                }
-            }
+//            if (debug)
+//            {
+//                for (int ndx = 0; ndx < testPixels.size(); ndx++)
+//                {
+//                    if (i == testPixels[ndx].first)
+//                    {
+//                        if (j == testPixels[ndx].second)
+//                        {
+//                            // Testing printouts.
+//                            cout << "i: " << i << ", j: " << j << endl;
+//                            cout << "\tPosition: <" << Po->x() << ", " << Po->y() << ", " << Po->z() << ">" << endl;
+//                            cout << "\tDirection: <" << d.x() << ", " << d.y() << ", " << d.z() << ">" << endl;
+//
+//                            if (closestObject != NULL)
+//                            {
+//                                cout << "\tT: " << closestObject->getTValue() << endl;
+//                                color_t color = image->pixel(i, j);
+//                                cout << "\tRGB: <" << color.r * 255.0 << ", " << color.g * 255.0 << ", " << color.b * 255.0 << ">" << endl;
+//
+//                                cout << "\tLight Vector: <" << + lightVector.x() << ", " << lightVector.y() << ", " << lightVector.z() << ">" << endl;
+//                                cout << "\tAmbient: <" << ambient.x() * 255.0 << ", " << ambient.y() * 255.0 << ", " << ambient.z() * 255.0 << ">" << endl;
+//                                cout << "\tDiffuse: <" << diffuse.x() * 255.0 << ", " << diffuse.y() * 255.0 << ", " << diffuse.z() * 255.0 << ">" << endl;
+//                                cout << "\tSpecular: <" << specular.x() * 255.0 << ", " << specular.y() * 255.0 << ", " << specular.z() * 255.0 << ">" << endl;
+//                            }
+//                            else
+//                            {
+//                                cout << "\tT: no hit" << endl;
+//                                cout << "\tRGB: no hit" << endl;
+//                                cout << "\tAmbient: no hit" << endl;
+//                                cout << "\tDiffuse: no hit" << endl;
+//                                cout << "\tSpecular: no hit" << endl;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 }
