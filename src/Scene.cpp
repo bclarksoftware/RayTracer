@@ -51,10 +51,58 @@ void Scene::parseScene()
 //    }
 }
 
+// Returns the closest intersected object.
+RTIntersectObject* Scene::getClosestIntersectedObject(Vector3d* Po, Vector3d d)
+{
+    RTIntersectObject* closestObject = NULL;
+
+    for (int ndx = 0; ndx < objects.size(); ndx++)
+    {
+        shared_ptr<RTIntersectObject> intersectObj = objects[ndx]->getIntersection(*Po, d);
+        double currentTValue = intersectObj->getTValue();
+
+        if (intersectObj->hasIntersected() && closestObject == NULL)
+        {
+            closestObject = intersectObj.get();
+        }
+        else if (intersectObj->hasIntersected() && currentTValue >= 0.0 && currentTValue < closestObject->getTValue())
+        {
+            closestObject = intersectObj.get();
+        }
+    }
+
+    return closestObject;
+}
+
+// Checks to see if the closest intersected object is in a shadow.
+bool Scene::isObjectInShadow(RTIntersectObject* object, Vector3d hitPoint, Vector3d dLight, double distToLight)
+{
+    // Loop over objects to determine lighting.
+    for (int k = 0; k < objects.size(); k++)
+    {
+        shared_ptr<RTIntersectObject> intersectObj = objects[k]->getIntersection(hitPoint, dLight);
+        double nextTValue = intersectObj->getTValue();
+
+        if (intersectObj->hasIntersected() && nextTValue >= 0.0 && nextTValue <= distToLight)
+        {
+            if (intersectObj.get() != object)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+//color_t Scene::getReflectColor(RTIntersectObject* object, Vector3d Po, Vector3d d)
+//{
+//
+//}
+
 void Scene::render()
 {
-    shared_ptr<Color> closestColor = make_shared<Color>();
-    RTIntersectObject* closestObject;
+    RTIntersectObject* closestObject = NULL;
     
     // Camera world location.
     Vector3d* Po = camera->getLocation();
@@ -80,64 +128,31 @@ void Scene::render()
     {
         for (int j = 0; j < pixelH; j++)
         {
-            bool foundHit = false;
-            double closestTValue = std::numeric_limits<double>::max();
-            
             // Calculate Us Vs
             double Us = left + (right - left) * ((i + 0.5)/pixelW);
             double Vs = bottom + (top - bottom) * ((j + 0.5)/pixelH);
             
             // Calculate d
-            Vector3d d = (Us * uVec) + (Vs * vVec) - (1.0 * wVec);
-            d.normalize();
+            Vector3d d = ((Us * uVec) + (Vs * vVec) - (1.0 * wVec)).normalized();
             
             Vector3d ambient, diffuse, specular, lightVector;
+
+            // Finds the closest intersected object.
+            closestObject = getClosestIntersectedObject(Po, d);
             
-            // Check Intersect with Objects
-            for (int k = 0; k < objects.size(); k++)
+            if (closestObject != NULL)
             {
-                shared_ptr<RTIntersectObject> intersectObj = objects[k]->getIntersection(*Po, d);
-                double nextTValue = intersectObj->getTValue();
-                
-                // Maybe instead of saving the individual values, we just save the object?
-                if (nextTValue >= 0.0 && nextTValue < closestTValue)
-                {
-                    foundHit = true;
-                    closestTValue = nextTValue;
-                    closestColor->setFromColor(intersectObj->getColor());
-                    closestObject = intersectObj.get();
-                }
-            }
-            
-            if (foundHit)
-            {
-                bool lightHit = false;
-                Vector3d hitPoint = *Po + (closestTValue * d);
+                Vector3d hitPoint = *Po + (closestObject->getTValue() * d);
                 Vector3d N = closestObject->getHitObject()->getNormal(hitPoint);
                                                          
                 // Calculate d for light.
                 Vector3d dLight = (lights[0]->getLocation() - hitPoint).normalized();
                 double distToLight = (lights[0]->getLocation() - hitPoint).norm();
-                
-                // Loop over objects to determine lighting.
-                for (int k = 0; k < objects.size(); k++)
-                {
-                    shared_ptr<RTIntersectObject> intersectObj = objects[k]->getIntersection(hitPoint, dLight);
-                    double nextTValue = intersectObj->getTValue();
 
-                    if (intersectObj->hasIntersected() && nextTValue >= 0.0 && nextTValue <= distToLight)
-                    {
-                        if (intersectObj.get() != closestObject)
-                        {
-                            lightHit = true;
-                            break;
-                        }
-                    }
-                }
-                
-                lightVector = Vector3d(0.0, 0.0, 0.0);
-                lightVector = lights[0]->getLocation() - hitPoint;
-                lightVector.normalize();
+                // Check if object is in shadowed area.
+                bool inShadow = isObjectInShadow(closestObject, hitPoint, dLight, distToLight);
+
+                lightVector = (lights[0]->getLocation() - hitPoint).normalized();
                 Vector3d viewVector = (*Po - hitPoint).normalized();
                 
                 Vector3d Ka = closestObject->getHitObject()->ambient
@@ -160,7 +175,7 @@ void Scene::render()
                 {
                     diffuse = Vector3d(0.0, 0.0, 0.0);
                     
-                    if(!lightHit)
+                    if(!inShadow)
                     {
                         diffuse[0] = lights[0]->getColor()->getRGB().x() * max(0.0, NdotL) * Kd.x();
                         diffuse[1] = lights[0]->getColor()->getRGB().y() * max(0.0, NdotL) * Kd.y();
@@ -180,12 +195,11 @@ void Scene::render()
                     diffuse = Vector3d(0.0, 0.0, 0.0);
                     specular = Vector3d(0.0, 0.0, 0.0);
                     
-                    if (!lightHit)
+                    if (!inShadow)
                     {
                         diffuse[0] = lights[0]->getColor()->getRGB().x() * max(0.0, NdotL) * Kd.x();
                         diffuse[1] = lights[0]->getColor()->getRGB().y() * max(0.0, NdotL) * Kd.y();
                         diffuse[2] = lights[0]->getColor()->getRGB().z() * max(0.0, NdotL) * Kd.z();
-                        
                         
                         specular [0] = lights[0]->getColor()->getRGB().x() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.x();
                         specular [1] = lights[0]->getColor()->getRGB().y() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.y();
@@ -222,9 +236,9 @@ void Scene::render()
                             cout << "\tPosition: <" << Po->x() << ", " << Po->y() << ", " << Po->z() << ">" << endl;
                             cout << "\tDirection: <" << d.x() << ", " << d.y() << ", " << d.z() << ">" << endl;
                             
-                            if (foundHit)
+                            if (closestObject != NULL)
                             {
-                                cout << "\tT: " << closestTValue << endl;
+                                cout << "\tT: " << closestObject->getTValue() << endl;
                                 color_t color = image->pixel(i, j);
                                 cout << "\tRGB: <" << color.r * 255.0 << ", " << color.g * 255.0 << ", " << color.b * 255.0 << ">" << endl;
                                 

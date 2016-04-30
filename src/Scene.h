@@ -49,6 +49,10 @@ private:
     int debug;
     std::vector<std::pair<int,int>> testPixels;
 
+    RTIntersectObject* getClosestIntersectedObject(Eigen::Vector3d* Po, Eigen::Vector3d d);
+    bool isObjectInShadow(RTIntersectObject* object, Eigen::Vector3d hitPoint,
+                          Eigen::Vector3d dLight, double distToLight);
+
 };
 
 #endif //__SCENE_H__
