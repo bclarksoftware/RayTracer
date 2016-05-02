@@ -6,6 +6,8 @@ using namespace Eigen;
 RTPlane::RTPlane()
 : RTObject()
 {
+    this->type = 2;
+
     this->normal = Vector3d();
     this->hitData = make_shared<RTIntersectObject>();
 }
@@ -13,6 +15,8 @@ RTPlane::RTPlane()
 RTPlane::RTPlane(double a, double b, double c, double distance)
 : RTObject()
 {
+    this->type = 2;
+
     this->normal = Vector3d(a, b, c);
     this->distance = distance;
     
@@ -86,6 +90,9 @@ string RTPlane::toString()
     string str4 = "\tDiffuse: " + to_string(this->diffuse) + "\n";
     string str5 = "\tSpecular: " + to_string(this->specular) + "\n";
     string str6 = "\tRoughness: " + to_string(this->roughness) + "\n";
+    string str7 = "\tReflection: " + to_string(this->reflection) + "\n";
+    string str8 = "\tRefraction: " + to_string(this->refraction) + "\n";
+    string str9 = "\tIOR: " + to_string(this->ior) + "\n";
     
-    return (str0 + str1 + str2 + str3 + str4 + str5 + str6);
+    return (str0 + str1 + str2 + str3 + str4 + str5 + str6 + str7 + str8 + str9);
 }

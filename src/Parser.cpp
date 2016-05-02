@@ -285,6 +285,21 @@ void Parser::parseSphere(ifstream* readFile)
                         temp = strtok(NULL, " ");
                         newSphere->roughness = stod(string(temp));
                     }
+                    else if (string(temp) == "reflection")
+                    {
+                        temp = strtok(NULL, " ");
+                        newSphere->reflection = stod(string(temp));
+                    }
+                    else if (string(temp) == "refraction")
+                    {
+                        temp = strtok(NULL, " ");
+                        newSphere->refraction = stod(string(temp));
+                    }
+                    else if (string(temp) == "ior")
+                    {
+                        temp = strtok(NULL, " ");
+                        newSphere->ior = stod(string(temp));
+                    }
                     
                     temp = strtok(NULL, " ");
                 }
@@ -391,6 +406,21 @@ void Parser::parsePlane(std::ifstream* readFile)
                     {
                         temp = strtok(NULL, " ");
                         newPlane->roughness = stod(string(temp));
+                    }
+                    else if (string(temp) == "reflection")
+                    {
+                        temp = strtok(NULL, " ");
+                        newPlane->reflection = stod(string(temp));
+                    }
+                    else if (string(temp) == "refraction")
+                    {
+                        temp = strtok(NULL, " ");
+                        newPlane->refraction = stod(string(temp));
+                    }
+                    else if (string(temp) == "ior")
+                    {
+                        temp = strtok(NULL, " ");
+                        newPlane->ior = stod(string(temp));
                     }
                     
                     temp = strtok(NULL, " ");
@@ -505,6 +535,21 @@ void Parser::parseTriangle(std::ifstream* readFile)
                     {
                         temp = strtok(NULL, " ");
                         newTriangle->roughness = stod(string(temp));
+                    }
+                    else if (string(temp) == "reflection")
+                    {
+                        temp = strtok(NULL, " ");
+                        newTriangle->reflection = stod(string(temp));
+                    }
+                    else if (string(temp) == "refraction")
+                    {
+                        temp = strtok(NULL, " ");
+                        newTriangle->refraction = stod(string(temp));
+                    }
+                    else if (string(temp) == "ior")
+                    {
+                        temp = strtok(NULL, " ");
+                        newTriangle->ior = stod(string(temp));
                     }
 
                     temp = strtok(NULL, " ");

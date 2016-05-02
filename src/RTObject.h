@@ -28,9 +28,19 @@ public:
     double diffuse;
     double specular;
     double roughness;
+    double reflection;
+    double refraction;
+    double ior;
     
     Eigen::Vector3d translate;
-    
+
+    bool isSphere();
+    bool isPlane();
+    bool isTriangle();
+
+protected:
+    int type;
+
 private:
     std::shared_ptr<Color> color;
 };

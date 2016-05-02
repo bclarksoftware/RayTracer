@@ -6,6 +6,7 @@ using namespace Eigen;
 RTSphere::RTSphere()
 : RTObject()
 {
+    this->type = 1;
     this->center = Vector3d();
     this->hitData = make_shared<RTIntersectObject>();
 }
@@ -13,6 +14,7 @@ RTSphere::RTSphere()
 RTSphere::RTSphere(double centerX, double centerY, double centerZ, double radius)
 : RTObject()
 {
+    this->type = 1;
     this->center = Vector3d(centerX, centerY, centerZ);
     this->radius = radius;
     
@@ -107,6 +109,9 @@ string RTSphere::toString()
     string str4 = "\tDiffuse: " + to_string(this->diffuse) + "\n";
     string str5 = "\tSpecular: " + to_string(this->specular) + "\n";
     string str6 = "\tRoughness: " + to_string(this->roughness) + "\n";
+    string str7 = "\tReflection: " + to_string(this->reflection) + "\n";
+    string str8 = "\tRefraction: " + to_string(this->refraction) + "\n";
+    string str9 = "\tIOR: " + to_string(this->ior) + "\n";
     
-    return (str0 + str1 + str2 + str3 + str4 + str5 + str6);
+    return (str0 + str1 + str2 + str3 + str4 + str5 + str6 + str7 + str8 + str9);
 }

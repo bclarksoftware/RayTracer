@@ -11,6 +11,8 @@ RTObject::RTObject()
     diffuse = 0.0;
     specular = 0.0;
     roughness = 0.0;
+    reflection = 0.0;
+    refraction = 0.0;
     
     translate = Vector3d(0.0, 0.0, 0.0);
 }
@@ -33,4 +35,19 @@ void RTObject::setColor(double r, double g, double b)
 std::shared_ptr<Color> RTObject::getColor()
 {
     return this->color;
+}
+
+bool RTObject::isSphere()
+{
+    return (this->type == 1);
+}
+
+bool RTObject::isPlane()
+{
+    return (this->type == 2);
+}
+
+bool RTObject::isTriangle()
+{
+    return (this->type == 3);
 }

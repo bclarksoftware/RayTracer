@@ -36,6 +36,9 @@ private:
     int pixelH;
     
     int shadeType;
+
+    int reflectCount;
+    int refractCount;
     
     std::string sceneFileName;
     std::string imageName;
@@ -54,7 +57,7 @@ private:
     bool isObjectInShadow(RTIntersectObject* object, Eigen::Vector3d hitPoint,
                           Eigen::Vector3d dLight, double distToLight);
 
-    color_t rayCast(Eigen::Vector3d* Po, Eigen::Vector3d d);
+    color_t rayCast(Eigen::Vector3d* Po, Eigen::Vector3d d, double n1);
 
 };
 

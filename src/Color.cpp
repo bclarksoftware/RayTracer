@@ -8,7 +8,7 @@ Color::Color()
     this->color.r = 0.0;
     this->color.g = 0.0;
     this->color.b = 0.0;
-    this->color.f = 1.0;
+    this->color.f = 0.0;
 }
 
 Color::Color(double r, double g, double b)

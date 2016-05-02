@@ -15,6 +15,9 @@ Scene::Scene(int width, int height, string sceneFileName, int shadeType, int deb
 {
     pixelW = width;
     pixelH = height;
+
+    reflectCount = 0;
+    refractCount = 0;
     
     this->shadeType = shadeType;
     
@@ -61,11 +64,8 @@ RTIntersectObject* Scene::getClosestIntersectedObject(Vector3d* Po, Vector3d d)
         shared_ptr<RTIntersectObject> intersectObj = objects[ndx]->getIntersection(*Po, d);
         double currentTValue = intersectObj->getTValue();
 
-        if (intersectObj->hasIntersected() && closestObject == NULL)
-        {
-            closestObject = intersectObj.get();
-        }
-        else if (intersectObj->hasIntersected() && currentTValue >= 0.0 && currentTValue < closestObject->getTValue())
+        if (intersectObj->hasIntersected() && currentTValue > 0.0
+            && (closestObject == NULL || currentTValue < closestObject->getTValue()))
         {
             closestObject = intersectObj.get();
         }
@@ -83,7 +83,7 @@ bool Scene::isObjectInShadow(RTIntersectObject* object, Vector3d hitPoint, Vecto
         shared_ptr<RTIntersectObject> intersectObj = objects[k]->getIntersection(hitPoint, dLight);
         double nextTValue = intersectObj->getTValue();
 
-        if (intersectObj->hasIntersected() && nextTValue >= 0.0 && nextTValue <= distToLight)
+        if (intersectObj->hasIntersected() && nextTValue > 0.0 && nextTValue <= distToLight)
         {
             if (intersectObj.get() != object)
             {
@@ -95,18 +95,19 @@ bool Scene::isObjectInShadow(RTIntersectObject* object, Vector3d hitPoint, Vecto
     return false;
 }
 
-color_t Scene::rayCast(Vector3d* Po, Vector3d d)
+color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 {
-    color_t rtnClr;
+    color_t localClr;
     Vector3d ambient, diffuse, specular, lightVector;
+    Vector3d hitPoint, N;
 
     // Finds the closest intersected object.
     RTIntersectObject* closestObject = getClosestIntersectedObject(Po, d);
 
     if (closestObject != NULL)
     {
-        Vector3d hitPoint = *Po + (closestObject->getTValue() * d);
-        Vector3d N = closestObject->getHitObject()->getNormal(hitPoint);
+        hitPoint = (*Po + (closestObject->getTValue() * d));
+        N = closestObject->getHitObject()->getNormal(hitPoint);
 
         // Calculate d for light.
         Vector3d dLight = (lights[0]->getLocation() - hitPoint).normalized();
@@ -147,7 +148,7 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
 
             Color* lambertianColor = new Color();
             lambertianColor->setRGB(diffuse);
-            rtnClr = lambertianColor->getColor();
+            localClr = lambertianColor->getColor();
             delete lambertianColor;
         }
         else
@@ -169,18 +170,92 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
 
             Color* blinnPhongColor = new Color();
             blinnPhongColor->setRGB(ambient + diffuse + specular);
-            rtnClr = blinnPhongColor->getColor();
+            localClr = blinnPhongColor->getColor();
             delete blinnPhongColor;
         }
     }
     else
     {
-        rtnClr.r = 0.0;
-        rtnClr.g = 0.0;
-        rtnClr.b = 0.0;
+        localClr.r = 0.0;
+        localClr.g = 0.0;
+        localClr.b = 0.0;
+        localClr.f = 0.0;
+
+        return localClr;
     }
 
-    return rtnClr;
+    color_t finalClr;
+    finalClr.r = 0.0;
+    finalClr.g = 0.0;
+    finalClr.b = 0.0;
+    finalClr.f = 0.0;
+
+    if (reflectCount++ < 5 && closestObject->getHitObject()->reflection > 0.0)
+    {
+        Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
+        Vector3d reflectRay = (d + 2.0 * N.dot(-d) * N).normalized();
+        newP->normalize();
+
+        color_t rtnClr = rayCast(newP, reflectRay, 1.0);
+        delete newP;
+
+        finalClr.r += rtnClr.r * closestObject->getHitObject()->reflection;
+        finalClr.g += rtnClr.g * closestObject->getHitObject()->reflection;
+        finalClr.b += rtnClr.b * closestObject->getHitObject()->reflection;
+    }
+
+    if (refractCount++ < 5 && closestObject->getHitObject()->refraction == 1.0)
+    {
+        Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
+        Vector3d refractRay;
+        double n2, dDotN;
+
+        color_t rtnClr;
+
+        N.normalize();
+        d.normalize();
+        newP->normalize();
+
+        double cosI = d.dot(N);
+
+        if (cosI > 0)
+        {
+            n1 = closestObject->getHitObject()->ior;
+            n2 = 1.0f;
+            N = N * -1.0;
+        }
+        else
+        {
+            n2 = closestObject->getHitObject()->ior;
+            n1 = 1.0f;
+            cosI = -cosI;
+        }
+
+        double n = n1 / n2;
+        double cosT2 = 1.0 - n * n * (1.0f - cosI * cosI);
+
+        if (cosT2 > 0.0)
+        {
+            Vector3d T = (n * d) + (n * cosI - sqrt( cosT2 )) * N;
+
+            rtnClr = rayCast(newP, T, n2);
+            delete newP;
+        }
+
+        finalClr.r += rtnClr.r * closestObject->getHitObject()->getColor()->getRGBA().w();
+        finalClr.g += rtnClr.g * closestObject->getHitObject()->getColor()->getRGBA().w();
+        finalClr.b += rtnClr.b * closestObject->getHitObject()->getColor()->getRGBA().w();
+    }
+
+    localClr.r *= (1.0 - closestObject->getHitObject()->reflection - closestObject->getHitObject()->getColor()->getRGBA().w());
+    localClr.g *= (1.0 - closestObject->getHitObject()->reflection - closestObject->getHitObject()->getColor()->getRGBA().w());
+    localClr.b *= (1.0 - closestObject->getHitObject()->reflection - closestObject->getHitObject()->getColor()->getRGBA().w());
+
+    finalClr.r += localClr.r;
+    finalClr.g += localClr.g;
+    finalClr.b += localClr.b;
+
+    return finalClr;
 }
 
 void Scene::render()
@@ -216,8 +291,10 @@ void Scene::render()
             // Calculate d
             Vector3d d = ((Us * uVec) + (Vs * vVec) - (1.0 * wVec)).normalized();
 
+            refractCount = 0;
+            reflectCount = 0;
             // Raycast returns the color of the pixel.
-            image->pixel(i, j, rayCast(Po, d));
+            image->pixel(i, j, rayCast(Po, d, 1.0));
             
 //            if (debug)
 //            {
@@ -265,3 +342,34 @@ void Scene::exportRender()
     // true to scale to max color, false to clamp to 1.0
     image->WriteTga((char *)imageName.c_str(), true);
 }
+
+// If it's a sphere
+//        if (closestObject->getHitObject()->isSphere())
+//        {
+//            // Going out of sphere.
+//            if (-d.dot(N) < 0.0)
+//            {
+//                N = -N;
+//                dDotN = d.dot(N);
+//                n1 = closestObject->getHitObject()->ior;
+//                n2 = 1.0;
+//                refractRay = ((n1/n2) * (d - N * dDotN)) - (N * (sqrt(1.0 - ((n1 / n2) * (n1 / n2)) * (1.0 - (dDotN *
+//                                                                                                              dDotN)))));
+//                rtnClr = rayCast(newP, refractRay, n2);
+//            }
+//            else // Going into the sphere.
+//            {
+//                dDotN = d.dot(N);
+//                n1 = 1.0;
+//                n2 = closestObject->getHitObject()->ior;
+//                refractRay = ((n1/n2) * (d - N * dDotN)) - (N * (sqrt(1.0 - ((n1 / n2) * (n1 / n2)) * (1.0 - (dDotN *
+//                                                                                                              dDotN)))));
+//                rtnClr = rayCast(newP, refractRay, n2);
+//            }
+//        }
+//        else // else we didn't hit a sphere
+//        {
+//            dDotN = d.dot(N);
+//            refractRay = ((n1/n2) * (d - N * dDotN)) - (N * (sqrt(1.0 - ((n1 / n2) * (n1 / n2)) * (1.0 - (dDotN * dDotN)))));
+//            rtnClr = rayCast(newP, refractRay, 1.0);
+//        }

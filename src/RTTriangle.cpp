@@ -10,12 +10,16 @@ using namespace Eigen;
 RTTriangle::RTTriangle()
 : RTObject()
 {
+    this->type = 3;
+
     this->hitData = make_shared<RTIntersectObject>();
 }
 
 RTTriangle::RTTriangle(Vector3d v1, Vector3d v2, Vector3d v3)
 : RTObject()
 {
+    this->type = 3;
+
     this->v1 = v1;
     this->v2 = v2;
     this->v3 = v3;
@@ -91,6 +95,9 @@ string RTTriangle::toString()
     string str5 = "\tDiffuse: " + to_string(this->diffuse) + "\n";
     string str6 = "\tSpecular: " + to_string(this->specular) + "\n";
     string str7 = "\tRoughness: " + to_string(this->roughness) + "\n";
+    string str8 = "\tReflection: " + to_string(this->reflection) + "\n";
+    string str9 = "\tRefraction: " + to_string(this->refraction) + "\n";
+    string str10 = "\tIOR: " + to_string(this->ior) + "\n";
 
-    return (str0 + str1 + str2 + str3 + str4 + str5 + str6 + str7);
+    return (str0 + str1 + str2 + str3 + str4 + str5 + str6 + str7 + str8 + str9 + str10);
 }
