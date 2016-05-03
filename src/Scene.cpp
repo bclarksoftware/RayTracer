@@ -206,6 +206,9 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
         Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
         Vector3d reflectRay = (d + 2.0 * N.dot(-d) * N).normalized();
 
+        // Move the ray a little forward.
+        *newP = *newP + 0.00001 * reflectRay;
+        
         color_t rtnClr = rayCast(newP, reflectRay, 1.0);
         delete newP;
 
@@ -215,9 +218,9 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
             reflectRatio = 0.0;
         }
 
-        finalClr.r += rtnClr.r * reflectRatio; // * lights[0]->getColor()->getColor().r;
-        finalClr.g += rtnClr.g * reflectRatio; // * lights[0]->getColor()->getColor().g;
-        finalClr.b += rtnClr.b * reflectRatio; // * lights[0]->getColor()->getColor().b;
+        finalClr.r += rtnClr.r * reflectRatio;
+        finalClr.g += rtnClr.g * reflectRatio;
+        finalClr.b += rtnClr.b * reflectRatio;
     }
 
     if (refractCount++ < 5 && closestObject->getHitObject()->refraction == 1.0)
@@ -236,23 +239,26 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
         if (dDotN < 0)
         {
             n1 = closestObject->getHitObject()->ior;
-            n2 = 1.0f;
+            n2 = 1.0;
             N = N * -1.0;
             dDotN = -dDotN;
         }
         else
         {
             n2 = closestObject->getHitObject()->ior;
-            n1 = 1.0f;
+            n1 = 1.0;
         }
 
         double n = n1 / n2;
-        double radicand = 1.0 - n * n * (1.0f - dDotN * dDotN);
+        double radicand = 1.0 - (n * n) * (1.0 - (dDotN * dDotN));
 
         if (radicand > 0.0)
         {
             Vector3d T = n * (d + N * (dDotN)) - (N * sqrt( radicand ));
 
+            // Move the ray a little forward.
+            *newP = *newP + 0.00001 * T;
+            
             rtnClr = rayCast(newP, T, n2);
             delete newP;
         }
@@ -357,34 +363,3 @@ void Scene::exportRender()
     // true to scale to max color, false to clamp to 1.0
     image->WriteTga((char *)imageName.c_str(), true);
 }
-
-// If it's a sphere
-//        if (closestObject->getHitObject()->isSphere())
-//        {
-//            // Going out of sphere.
-//            if (-d.dot(N) < 0.0)
-//            {
-//                N = -N;
-//                dDotN = d.dot(N);
-//                n1 = closestObject->getHitObject()->ior;
-//                n2 = 1.0;
-//                refractRay = ((n1/n2) * (d - N * dDotN)) - (N * (sqrt(1.0 - ((n1 / n2) * (n1 / n2)) * (1.0 - (dDotN *
-//                                                                                                              dDotN)))));
-//                rtnClr = rayCast(newP, refractRay, n2);
-//            }
-//            else // Going into the sphere.
-//            {
-//                dDotN = d.dot(N);
-//                n1 = 1.0;
-//                n2 = closestObject->getHitObject()->ior;
-//                refractRay = ((n1/n2) * (d - N * dDotN)) - (N * (sqrt(1.0 - ((n1 / n2) * (n1 / n2)) * (1.0 - (dDotN *
-//                                                                                                              dDotN)))));
-//                rtnClr = rayCast(newP, refractRay, n2);
-//            }
-//        }
-//        else // else we didn't hit a sphere
-//        {
-//            dDotN = d.dot(N);
-//            refractRay = ((n1/n2) * (d - N * dDotN)) - (N * (sqrt(1.0 - ((n1 / n2) * (n1 / n2)) * (1.0 - (dDotN * dDotN)))));
-//            rtnClr = rayCast(newP, refractRay, 1.0);
-//        }
