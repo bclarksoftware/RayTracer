@@ -108,6 +108,7 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
     {
         hitPoint = (*Po + (closestObject->getTValue() * d));
         N = closestObject->getHitObject()->getNormal(hitPoint);
+        N.normalize();
 
         // Calculate d for light.
         Vector3d dLight = (lights[0]->getLocation() - hitPoint).normalized();
@@ -126,13 +127,14 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
         Vector3d Ks = closestObject->getHitObject()->specular
                       * closestObject->getHitObject()->getColor()->getRGB();
 
+        color_t lightCol = lights[0]->getColor()->getColor();
+
         double NdotL = max(N.dot(lightVector), 0.0);
-        Vector3d halfVector = (viewVector + lightVector).normalized();
 
         ambient = Vector3d(0.0, 0.0, 0.0);
-        ambient[0] = lights[0]->getColor()->getRGB().x() * Ka.x();
-        ambient[1] = lights[0]->getColor()->getRGB().y() * Ka.y();
-        ambient[2] = lights[0]->getColor()->getRGB().z() * Ka.z();
+        ambient[0] = lightCol.r * Ka.x();
+        ambient[1] = lightCol.g * Ka.y();
+        ambient[2] = lightCol.b * Ka.z();
 
         // If just lambertian, else do blinn phong shading.
         if (shadeType == 1)
@@ -141,9 +143,9 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
             if(!inShadow)
             {
-                diffuse[0] = lights[0]->getColor()->getRGB().x() * max(0.0, NdotL) * Kd.x();
-                diffuse[1] = lights[0]->getColor()->getRGB().y() * max(0.0, NdotL) * Kd.y();
-                diffuse[2] = lights[0]->getColor()->getRGB().z() * max(0.0, NdotL) * Kd.z();
+                diffuse[0] = lightCol.r * max(0.0, NdotL) * Kd.x();
+                diffuse[1] = lightCol.g * max(0.0, NdotL) * Kd.y();
+                diffuse[2] = lightCol.b * max(0.0, NdotL) * Kd.z();
             }
 
             Color* lambertianColor = new Color();
@@ -159,13 +161,17 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
             if (!inShadow)
             {
-                diffuse[0] = lights[0]->getColor()->getRGB().x() * max(0.0, NdotL) * Kd.x();
-                diffuse[1] = lights[0]->getColor()->getRGB().y() * max(0.0, NdotL) * Kd.y();
-                diffuse[2] = lights[0]->getColor()->getRGB().z() * max(0.0, NdotL) * Kd.z();
+                diffuse[0] = lightCol.r * max(0.0, NdotL) * Kd.x();
+                diffuse[1] = lightCol.g * max(0.0, NdotL) * Kd.y();
+                diffuse[2] = lightCol.b * max(0.0, NdotL) * Kd.z();
 
-                specular [0] = lights[0]->getColor()->getRGB().x() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.x();
-                specular [1] = lights[0]->getColor()->getRGB().y() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.y();
-                specular [2] = lights[0]->getColor()->getRGB().z() * pow((halfVector.dot(N)), 1.0/closestObject->getHitObject()->roughness) * Ks.z();
+                Vector3d halfVector = (viewVector + lightVector).normalized();
+                double specAngle = max(halfVector.dot(N), 0.0);
+                double shininess = 1.0/closestObject->getHitObject()->roughness;
+
+                specular [0] = lightCol.r * pow(specAngle, shininess) * Ks.x();
+                specular [1] = lightCol.g * pow(specAngle, shininess) * Ks.y();
+                specular [2] = lightCol.b * pow(specAngle, shininess) * Ks.z();
             }
 
             Color* blinnPhongColor = new Color();
@@ -190,66 +196,76 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
     finalClr.b = 0.0;
     finalClr.f = 0.0;
 
+    double reflectRatio = closestObject->getHitObject()->reflection;
+    double refractRatio = closestObject->getHitObject()->getColor()->getRGBA().w();
+    N.normalize();
+    d.normalize();
+
     if (reflectCount++ < 5 && closestObject->getHitObject()->reflection > 0.0)
     {
         Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
         Vector3d reflectRay = (d + 2.0 * N.dot(-d) * N).normalized();
-        newP->normalize();
 
         color_t rtnClr = rayCast(newP, reflectRay, 1.0);
         delete newP;
 
-        finalClr.r += rtnClr.r * closestObject->getHitObject()->reflection;
-        finalClr.g += rtnClr.g * closestObject->getHitObject()->reflection;
-        finalClr.b += rtnClr.b * closestObject->getHitObject()->reflection;
+        // Color black meaning we hit nothing.
+        if (rtnClr.r == 0.0 && rtnClr.g == 0.0 && rtnClr.b == 0.0)
+        {
+            reflectRatio = 0.0;
+        }
+
+        finalClr.r += rtnClr.r * reflectRatio; // * lights[0]->getColor()->getColor().r;
+        finalClr.g += rtnClr.g * reflectRatio; // * lights[0]->getColor()->getColor().g;
+        finalClr.b += rtnClr.b * reflectRatio; // * lights[0]->getColor()->getColor().b;
     }
 
-    if (refractCount++ < 5 && closestObject->getHitObject()->refraction == 1.0)
-    {
-        Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
-        Vector3d refractRay;
-        double n2, dDotN;
+//    if (refractCount++ < 5 && closestObject->getHitObject()->refraction == 1.0)
+//    {
+//        Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
+//        Vector3d refractRay;
+//        double n2, dDotN;
+//
+//        color_t rtnClr;
+//
+//        N.normalize();
+//        d.normalize();
+//        newP->normalize();
+//
+//        double cosI = d.dot(N);
+//
+//        if (cosI > 0)
+//        {
+//            n1 = closestObject->getHitObject()->ior;
+//            n2 = 1.0f;
+//            N = N * -1.0;
+//        }
+//        else
+//        {
+//            n2 = closestObject->getHitObject()->ior;
+//            n1 = 1.0f;
+//            cosI = -cosI;
+//        }
+//
+//        double n = n1 / n2;
+//        double cosT2 = 1.0 - n * n * (1.0f - cosI * cosI);
+//
+//        if (cosT2 > 0.0)
+//        {
+//            Vector3d T = (n * d) + (n * cosI - sqrt( cosT2 )) * N;
+//
+//            rtnClr = rayCast(newP, T, n2);
+//            delete newP;
+//        }
+//
+//        finalClr.r += rtnClr.r * refractRatio;
+//        finalClr.g += rtnClr.g * refractRatio;
+//        finalClr.b += rtnClr.b * refractRatio;
+//    }
 
-        color_t rtnClr;
-
-        N.normalize();
-        d.normalize();
-        newP->normalize();
-
-        double cosI = d.dot(N);
-
-        if (cosI > 0)
-        {
-            n1 = closestObject->getHitObject()->ior;
-            n2 = 1.0f;
-            N = N * -1.0;
-        }
-        else
-        {
-            n2 = closestObject->getHitObject()->ior;
-            n1 = 1.0f;
-            cosI = -cosI;
-        }
-
-        double n = n1 / n2;
-        double cosT2 = 1.0 - n * n * (1.0f - cosI * cosI);
-
-        if (cosT2 > 0.0)
-        {
-            Vector3d T = (n * d) + (n * cosI - sqrt( cosT2 )) * N;
-
-            rtnClr = rayCast(newP, T, n2);
-            delete newP;
-        }
-
-        finalClr.r += rtnClr.r * closestObject->getHitObject()->getColor()->getRGBA().w();
-        finalClr.g += rtnClr.g * closestObject->getHitObject()->getColor()->getRGBA().w();
-        finalClr.b += rtnClr.b * closestObject->getHitObject()->getColor()->getRGBA().w();
-    }
-
-    localClr.r *= (1.0 - closestObject->getHitObject()->reflection - closestObject->getHitObject()->getColor()->getRGBA().w());
-    localClr.g *= (1.0 - closestObject->getHitObject()->reflection - closestObject->getHitObject()->getColor()->getRGBA().w());
-    localClr.b *= (1.0 - closestObject->getHitObject()->reflection - closestObject->getHitObject()->getColor()->getRGBA().w());
+    localClr.r *= (1.0 - reflectRatio - refractRatio);
+    localClr.g *= (1.0 - reflectRatio - refractRatio);
+    localClr.b *= (1.0 - reflectRatio - refractRatio);
 
     finalClr.r += localClr.r;
     finalClr.g += localClr.g;

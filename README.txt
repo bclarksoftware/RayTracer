@@ -4,10 +4,11 @@
  * Class:  CPE 473              *
  *===============================
 
-COMPLETENESS:
- - Program 2 is "all fine".
- - Meets all goals of Program 2.
- - The second BRDF is just Lambertian Reflection, a simplified version of Phong.
+COMPLETENESS OF PROGRAM 3:
+ - Triangles Complete
+ - Reflections Complete
+ - Some refractions work, but the last few files have interesting artifacts.
+ - Not as clean as I was hoping to make this program.
 
 HOW TO COMPILE:
  - Set 'EIGEN3_INCLUDE_DIR' environment variable to point 
@@ -25,3 +26,6 @@ HOW TO RUN:
       - Edit your scheme to reflect the arguments above.
 
 Example Images may be found within the resources directory.
+
+Looking for my own pov file?
+    - My own pov files have this naming scheme: "my_*"

@@ -71,7 +71,9 @@ shared_ptr<RTIntersectObject> RTSphere::getIntersection(Vector3d Po, Vector3d d)
     {
         t1 = ((-d.dot((Po - center)) + sqrt(rad))) / d.dot(d);
         t2 = ((-d.dot((Po - center)) - sqrt(rad))) / d.dot(d);
-        
+
+        //TODO: This logic here doesn't seem to be correct. If we have a positive and negative t value, this won't work
+
         // Check if at least one is positive.
         if (t1 >= 0.0 || t2 >= 0.0)
         {
