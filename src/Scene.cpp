@@ -220,48 +220,47 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
         finalClr.b += rtnClr.b * reflectRatio; // * lights[0]->getColor()->getColor().b;
     }
 
-//    if (refractCount++ < 5 && closestObject->getHitObject()->refraction == 1.0)
-//    {
-//        Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
-//        Vector3d refractRay;
-//        double n2, dDotN;
-//
-//        color_t rtnClr;
-//
-//        N.normalize();
-//        d.normalize();
-//        newP->normalize();
-//
-//        double cosI = d.dot(N);
-//
-//        if (cosI > 0)
-//        {
-//            n1 = closestObject->getHitObject()->ior;
-//            n2 = 1.0f;
-//            N = N * -1.0;
-//        }
-//        else
-//        {
-//            n2 = closestObject->getHitObject()->ior;
-//            n1 = 1.0f;
-//            cosI = -cosI;
-//        }
-//
-//        double n = n1 / n2;
-//        double cosT2 = 1.0 - n * n * (1.0f - cosI * cosI);
-//
-//        if (cosT2 > 0.0)
-//        {
-//            Vector3d T = (n * d) + (n * cosI - sqrt( cosT2 )) * N;
-//
-//            rtnClr = rayCast(newP, T, n2);
-//            delete newP;
-//        }
-//
-//        finalClr.r += rtnClr.r * refractRatio;
-//        finalClr.g += rtnClr.g * refractRatio;
-//        finalClr.b += rtnClr.b * refractRatio;
-//    }
+    if (refractCount++ < 5 && closestObject->getHitObject()->refraction == 1.0)
+    {
+        Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
+        Vector3d refractRay;
+        double n2;
+
+        color_t rtnClr;
+
+        N.normalize();
+        d.normalize();
+
+        double dDotN = -d.dot(N);
+
+        if (dDotN < 0)
+        {
+            n1 = closestObject->getHitObject()->ior;
+            n2 = 1.0f;
+            N = N * -1.0;
+            dDotN = -dDotN;
+        }
+        else
+        {
+            n2 = closestObject->getHitObject()->ior;
+            n1 = 1.0f;
+        }
+
+        double n = n1 / n2;
+        double radicand = 1.0 - n * n * (1.0f - dDotN * dDotN);
+
+        if (radicand > 0.0)
+        {
+            Vector3d T = n * (d + N * (dDotN)) - (N * sqrt( radicand ));
+
+            rtnClr = rayCast(newP, T, n2);
+            delete newP;
+        }
+
+        finalClr.r += rtnClr.r * refractRatio;
+        finalClr.g += rtnClr.g * refractRatio;
+        finalClr.b += rtnClr.b * refractRatio;
+    }
 
     localClr.r *= (1.0 - reflectRatio - refractRatio);
     localClr.g *= (1.0 - reflectRatio - refractRatio);
