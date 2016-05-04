@@ -267,14 +267,10 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
         finalClr.g += rtnClr.g * refractRatio;
         finalClr.b += rtnClr.b * refractRatio;
     }
-
-    localClr.r *= (1.0 - reflectRatio - refractRatio);
-    localClr.g *= (1.0 - reflectRatio - refractRatio);
-    localClr.b *= (1.0 - reflectRatio - refractRatio);
-
-    finalClr.r += localClr.r;
-    finalClr.g += localClr.g;
-    finalClr.b += localClr.b;
+    
+    finalClr.r += (1.0 * ambient.x()) + (1.0 - reflectRatio - refractRatio) * (diffuse.x() + specular.x());
+    finalClr.g += (1.0 * ambient.y()) + (1.0 - reflectRatio - refractRatio) * (diffuse.y() + specular.y());
+    finalClr.b += (1.0 * ambient.z()) + (1.0 - reflectRatio - refractRatio) * (diffuse.z() + specular.z());
 
     return finalClr;
 }
@@ -312,47 +308,30 @@ void Scene::render()
             // Calculate d
             Vector3d d = ((Us * uVec) + (Vs * vVec) - (1.0 * wVec)).normalized();
 
+            // Reset recursion count.
             refractCount = 0;
             reflectCount = 0;
+            
             // Raycast returns the color of the pixel.
             image->pixel(i, j, rayCast(Po, d, 1.0));
             
-//            if (debug)
-//            {
-//                for (int ndx = 0; ndx < testPixels.size(); ndx++)
-//                {
-//                    if (i == testPixels[ndx].first)
-//                    {
-//                        if (j == testPixels[ndx].second)
-//                        {
-//                            // Testing printouts.
-//                            cout << "i: " << i << ", j: " << j << endl;
-//                            cout << "\tPosition: <" << Po->x() << ", " << Po->y() << ", " << Po->z() << ">" << endl;
-//                            cout << "\tDirection: <" << d.x() << ", " << d.y() << ", " << d.z() << ">" << endl;
-//
-//                            if (closestObject != NULL)
-//                            {
-//                                cout << "\tT: " << closestObject->getTValue() << endl;
-//                                color_t color = image->pixel(i, j);
-//                                cout << "\tRGB: <" << color.r * 255.0 << ", " << color.g * 255.0 << ", " << color.b * 255.0 << ">" << endl;
-//
-//                                cout << "\tLight Vector: <" << + lightVector.x() << ", " << lightVector.y() << ", " << lightVector.z() << ">" << endl;
-//                                cout << "\tAmbient: <" << ambient.x() * 255.0 << ", " << ambient.y() * 255.0 << ", " << ambient.z() * 255.0 << ">" << endl;
-//                                cout << "\tDiffuse: <" << diffuse.x() * 255.0 << ", " << diffuse.y() * 255.0 << ", " << diffuse.z() * 255.0 << ">" << endl;
-//                                cout << "\tSpecular: <" << specular.x() * 255.0 << ", " << specular.y() * 255.0 << ", " << specular.z() * 255.0 << ">" << endl;
-//                            }
-//                            else
-//                            {
-//                                cout << "\tT: no hit" << endl;
-//                                cout << "\tRGB: no hit" << endl;
-//                                cout << "\tAmbient: no hit" << endl;
-//                                cout << "\tDiffuse: no hit" << endl;
-//                                cout << "\tSpecular: no hit" << endl;
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+            if (debug)
+            {
+                for (int ndx = 0; ndx < testPixels.size(); ndx++)
+                {
+                    if (i == testPixels[ndx].first)
+                    {
+                        if (j == testPixels[ndx].second)
+                        {
+                            // Testing printouts.
+                            cout << "i: " << i << ", j: " << j << endl;
+
+                            color_t color = image->pixel(i, j);
+                            cout << "\tRGB: <" << color.r * 255.0 << ", " << color.g * 255.0 << ", " << color.b * 255.0 << ">" << endl;
+                        }
+                    }
+                }
+            }
         }
     }
 }
