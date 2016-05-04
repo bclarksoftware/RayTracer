@@ -11,6 +11,8 @@
 using namespace std;
 using namespace Eigen;
 
+#define MAX_RECURSE 5
+
 Scene::Scene(int width, int height, string sceneFileName, int shadeType, int debug, vector<pair<int,int>> indices)
 {
     pixelW = width;
@@ -201,7 +203,7 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
     N.normalize();
     d.normalize();
 
-    if (reflectCount++ < 5 && closestObject->getHitObject()->reflection > 0.0)
+    if (reflectCount++ < MAX_RECURSE && closestObject->getHitObject()->reflection > 0.0)
     {
         Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
         Vector3d reflectRay = (d + 2.0 * N.dot(-d) * N).normalized();
@@ -223,7 +225,7 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
         finalClr.b += rtnClr.b * reflectRatio;
     }
 
-    if (refractCount++ < 5 && closestObject->getHitObject()->refraction == 1.0)
+    if (refractCount++ < MAX_RECURSE && closestObject->getHitObject()->refraction == 1.0)
     {
         Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
         Vector3d refractRay;
