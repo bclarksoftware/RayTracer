@@ -101,6 +101,12 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
     // Finds the closest intersected object.
     RTIntersectObject* closestObject = getClosestIntersectedObject(Po, d);
 
+    if (debug)
+    {
+        cout << "Ray: {" << Po->x() << ", " << Po->y() << ", " << Po->z() << "} -> {"
+             << d.x() << ", " << d.y() << ", " << d.z() << "}" << endl;
+    }
+
     if (closestObject != NULL)
     {
         hitPoint = (*Po + (closestObject->getTValue() * d));
@@ -129,9 +135,9 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
         double NdotL = max(N.dot(lightVector), 0.0);
 
         ambient = Vector3d(0.0, 0.0, 0.0);
-        ambient[0] = lightCol.r * Ka.x();
-        ambient[1] = lightCol.g * Ka.y();
-        ambient[2] = lightCol.b * Ka.z();
+        ambient[0] = Ka.x();
+        ambient[1] = Ka.y();
+        ambient[2] = Ka.z();
 
         // If just lambertian, else do blinn phong shading.
         if (shadeType == 1)
@@ -166,9 +172,9 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
                 double specAngle = max(halfVector.dot(N), 0.0);
                 double shininess = 1.0/closestObject->getHitObject()->roughness;
 
-                specular [0] = lightCol.r * pow(specAngle, shininess) * Ks.x();
-                specular [1] = lightCol.g * pow(specAngle, shininess) * Ks.y();
-                specular [2] = lightCol.b * pow(specAngle, shininess) * Ks.z();
+                specular[0] = lightCol.r * pow(specAngle, shininess) * Ks.x();
+                specular[1] = lightCol.g * pow(specAngle, shininess) * Ks.y();
+                specular[2] = lightCol.b * pow(specAngle, shininess) * Ks.z();
             }
 
             Color* blinnPhongColor = new Color();
@@ -176,13 +182,30 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
             localClr = blinnPhongColor->getColor();
             delete blinnPhongColor;
         }
+
+        if (debug)
+        {
+            cout << "Hit Object ID (" << closestObject->getHitObject()->getId() << ") "
+            << "at T = " << closestObject->getTValue() << ", Interesection = {"
+            << hitPoint.x() << ", " << hitPoint.y() << ", " << hitPoint.z() << "}" << endl;
+
+            cout << "Ambient: " << ambient.x() << ", " << ambient.y() << ", " << ambient.z() << endl;
+            cout << "Diffuse: " << diffuse.x() << ", " << diffuse.y() << ", " << diffuse.z() << endl;
+            cout << "Specular: " << specular.x() << ", " << specular.y() << ", " << specular.z() << endl;
+            cout << "----" << endl;
+        }
     }
-    else
-    {
+    else {
         localClr.r = 0.0;
         localClr.g = 0.0;
         localClr.b = 0.0;
         localClr.f = 0.0;
+
+        if (debug)
+        {
+            cout << "No Intersection" << endl;
+            cout << "----" << endl;
+        }
 
         return localClr;
     }
@@ -205,7 +228,12 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
         // Move the ray a little forward.
         *newP = *newP + 0.00001 * reflectRay;
-        
+
+        if (debug)
+        {
+            cout << "Iteration type: Reflection" << endl;
+        }
+
         color_t rtnClr = rayCast(newP, reflectRay, 1.0);
         delete newP;
 
@@ -255,7 +283,12 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
             // Move the ray a little forward.
             *newP = *newP + 0.00001 * T;
-            
+
+            if (debug)
+            {
+                cout << "Iteration type: Refraction" << endl;
+            }
+
             rtnClr = rayCast(newP, T, n2);
             delete newP;
         }
@@ -309,9 +342,6 @@ void Scene::render()
             refractCount = 0;
             reflectCount = 0;
             
-            // Raycast returns the color of the pixel.
-            image->pixel(i, j, rayCast(Po, d, 1.0));
-            
             if (debug)
             {
                 for (int ndx = 0; ndx < testPixels.size(); ndx++)
@@ -321,13 +351,24 @@ void Scene::render()
                         if (j == testPixels[ndx].second)
                         {
                             // Testing printouts.
-                            cout << "i: " << i << ", j: " << j << endl;
+                            cout << "Pixel: [" << i << ", " << j << "] " << endl;
+                            cout << "----" << endl;
+                            cout << "Iteration type: Primary" << endl;
 
-                            color_t color = image->pixel(i, j);
-                            cout << "\tRGB: <" << color.r * 255.0 << ", " << color.g * 255.0 << ", " << color.b * 255.0 << ">" << endl;
+                            color_t finalColor = rayCast(Po, d, 1.0);
+
+                            cout << "Final Color: <" << finalColor.r * 255.0 << ", " << finalColor.g * 255.0
+                                 << ", " << finalColor.b * 255.0 << ">" << endl;
+                            cout << "\n-----------------------------------------------------------------------"
+                                 << "------------------------------------------------\n" << endl;
                         }
                     }
                 }
+            }
+            else
+            {
+                // Raycast returns the color of the pixel.
+                image->pixel(i, j, rayCast(Po, d, 1.0));
             }
         }
     }
@@ -337,5 +378,8 @@ void Scene::exportRender()
 {
     // write the targa file to disk
     // true to scale to max color, false to clamp to 1.0
-    image->WriteTga((char *)imageName.c_str(), true);
+    if (!debug)
+    {
+        image->WriteTga((char *)imageName.c_str(), true);
+    }
 }

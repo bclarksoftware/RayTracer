@@ -3,8 +3,11 @@
 using namespace std;
 using namespace Eigen;
 
+int RTObject::idTracker = 1;
+
 RTObject::RTObject()
 {
+    objectId = RTObject::idTracker++;
     color = make_shared<Color>();
     
     ambient = 0.0;
@@ -50,4 +53,9 @@ bool RTObject::isPlane()
 bool RTObject::isTriangle()
 {
     return (this->type == 3);
+}
+
+int RTObject::getId()
+{
+    return this->objectId;
 }

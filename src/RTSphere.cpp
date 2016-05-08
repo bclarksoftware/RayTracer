@@ -54,11 +54,11 @@ shared_ptr<RTIntersectObject> RTSphere::getIntersection(Vector3d Po, Vector3d d)
     
     hitData->reset();
     
-    if (rad < 0)
+    if (rad < 0.0)
     {
         this->hitData->setIntersected(false);
     }
-    else if (rad == 0)
+    else if (rad == 0.0)
     {
         t = -d.dot((Po - center)) / d.dot(d);
         
@@ -100,8 +100,10 @@ shared_ptr<RTIntersectObject> RTSphere::getIntersection(Vector3d Po, Vector3d d)
             //}
         }
     }
+
+    printf("\tReturn T Value: %lf\n", this->hitData->getTValue());
     
-    return hitData;
+    return this->hitData;
 }
 
 Vector3d RTSphere::getNormal(Eigen::Vector3d hitPoint)

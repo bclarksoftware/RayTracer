@@ -17,18 +17,12 @@ shared_ptr<Scene> scene;
 
 void createTest()
 {
-//    indices.push_back(pair<int,int>(320, 239));
-//    indices.push_back(pair<int,int>(360, 219));
-//    indices.push_back(pair<int,int>(230, 239));
-//    indices.push_back(pair<int,int>(120, 349));
-//    indices.push_back(pair<int,int>(490, 119));
-//    indices.push_back(pair<int,int>(320, 50));
-//    indices.push_back(pair<int,int>(50, 240));
-//    indices.push_back(pair<int,int>(590, 240));
-    
-    indices.push_back(pair<int,int>(120, 120));
     indices.push_back(pair<int,int>(295, 265));
-    indices.push_back(pair<int,int>(420, 130));
+    indices.push_back(pair<int,int>(315, 185));
+    indices.push_back(pair<int,int>(380, 190));
+    indices.push_back(pair<int,int>(370, 270));
+    indices.push_back(pair<int,int>(315, 320));
+    indices.push_back(pair<int,int>(220, 240));
 }
 
 int main( int argc, const char* argv[] )

@@ -38,8 +38,12 @@ public:
     bool isPlane();
     bool isTriangle();
 
+    int getId();
+
 protected:
     int type;
+    static int idTracker;
+    int objectId;
 
 private:
     std::shared_ptr<Color> color;
