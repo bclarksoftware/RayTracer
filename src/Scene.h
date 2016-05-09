@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
+#include <stack>
 
 #include "Image.h"
 #include "Parser.h"
@@ -39,6 +40,7 @@ private:
 
     int reflectCount;
     int refractCount;
+    std::stack<double> indexStack;
     
     std::string sceneFileName;
     std::string imageName;

@@ -20,6 +20,9 @@ Scene::Scene(int width, int height, string sceneFileName, int shadeType, int deb
 
     reflectCount = 0;
     refractCount = 0;
+
+    // Start out in air.
+    indexStack.push(1.0);
     
     this->shadeType = shadeType;
     
@@ -270,23 +273,26 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
         double dDotN = -d.dot(N);
 
-        if (dDotN < 0)
+        if (dDotN < 0) // Coming out of something.
         {
             n1 = closestObject->getHitObject()->ior;
             n2 = 1.0;
             N = N * -1.0;
             dDotN = -dDotN;
+
+            indexStack.pop();
         }
-        else
+        else // Going into something.
         {
-            n2 = closestObject->getHitObject()->ior;
             n1 = 1.0;
+            n2 = closestObject->getHitObject()->ior;
+            indexStack.push(n2);
         }
 
         double n = n1 / n2;
         double radicand = 1.0 - (n * n) * (1.0 - (dDotN * dDotN));
 
-        if (radicand > 0.0)
+        if (radicand >= 0.0)
         {
             Vector3d T = n * (d + N * (dDotN)) - (N * sqrt( radicand ));
 
@@ -298,7 +304,7 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
                 cout << "Iteration type: Refraction" << endl;
             }
 
-            rtnClr = rayCast(newP, T, n2);
+            rtnClr = rayCast(newP, T, indexStack.top());
             delete newP;
         }
 
@@ -350,6 +356,12 @@ void Scene::render()
             // Reset recursion count.
             refractCount = 0;
             reflectCount = 0;
+
+            // Reset index stack back to first index.
+            while(indexStack.size() != 1)
+            {
+                indexStack.pop();
+            }
             
             if (debug)
             {
@@ -364,7 +376,7 @@ void Scene::render()
                             cout << "----" << endl;
                             cout << "Iteration type: Primary" << endl;
 
-                            color_t finalColor = rayCast(Po, d, 1.0);
+                            color_t finalColor = rayCast(Po, d, indexStack.top());
 
                             cout << "Final Color: <" << finalColor.r * 255.0 << ", " << finalColor.g * 255.0
                                  << ", " << finalColor.b * 255.0 << ">" << endl;
@@ -377,7 +389,7 @@ void Scene::render()
             else
             {
                 // Raycast returns the color of the pixel.
-                image->pixel(i, j, rayCast(Po, d, 1.0));
+                image->pixel(i, j, rayCast(Po, d, indexStack.top()));
             }
         }
     }
