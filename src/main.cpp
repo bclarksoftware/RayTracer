@@ -23,6 +23,7 @@ void createTest()
     indices.push_back(pair<int,int>(370, 270));
     indices.push_back(pair<int,int>(315, 320));
     indices.push_back(pair<int,int>(220, 240));
+    indices.push_back(pair<int,int>(320, 145));
 }
 
 int main( int argc, const char* argv[] )

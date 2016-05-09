@@ -101,7 +101,7 @@ shared_ptr<RTIntersectObject> RTSphere::getIntersection(Vector3d Po, Vector3d d)
         }
     }
 
-    printf("\tReturn T Value: %lf\n", this->hitData->getTValue());
+//    printf("\tReturn T Value: %lf\n", this->hitData->getTValue());
     
     return this->hitData;
 }

@@ -74,6 +74,9 @@ RTIntersectObject* Scene::getClosestIntersectedObject(Vector3d* Po, Vector3d d)
 // Checks to see if the closest intersected object is in a shadow.
 bool Scene::isObjectInShadow(RTIntersectObject* object, Vector3d hitPoint, Vector3d dLight, double distToLight)
 {
+    //Temporarily save the old t value for our closest object.
+    double origTVal = object->getTValue();
+
     // Loop over objects to determine lighting.
     for (int k = 0; k < objects.size(); k++)
     {
@@ -84,16 +87,19 @@ bool Scene::isObjectInShadow(RTIntersectObject* object, Vector3d hitPoint, Vecto
         {
             if (intersectObj.get() != object)
             {
+                object->setTValue(origTVal);
                 return true;
             }
         }
     }
 
+    object->setTValue(origTVal);
     return false;
 }
 
 color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 {
+    double reflectRatio, refractRatio;
     color_t localClr;
     Vector3d ambient, diffuse, specular, lightVector;
     Vector3d hitPoint, N;
@@ -109,6 +115,9 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
     if (closestObject != NULL)
     {
+        reflectRatio = closestObject->getHitObject()->reflection;
+        refractRatio = closestObject->getHitObject()->getColor()->getRGBA().w();
+
         hitPoint = (*Po + (closestObject->getTValue() * d));
         N = closestObject->getHitObject()->getNormal(hitPoint);
         N.normalize();
@@ -146,9 +155,9 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
             if(!inShadow)
             {
-                diffuse[0] = lightCol.r * max(0.0, NdotL) * Kd.x();
-                diffuse[1] = lightCol.g * max(0.0, NdotL) * Kd.y();
-                diffuse[2] = lightCol.b * max(0.0, NdotL) * Kd.z();
+                diffuse[0] = lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
+                diffuse[1] = lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
+                diffuse[2] = lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
             }
 
             Color* lambertianColor = new Color();
@@ -164,17 +173,17 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
             if (!inShadow)
             {
-                diffuse[0] = lightCol.r * max(0.0, NdotL) * Kd.x();
-                diffuse[1] = lightCol.g * max(0.0, NdotL) * Kd.y();
-                diffuse[2] = lightCol.b * max(0.0, NdotL) * Kd.z();
+                diffuse[0] = lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
+                diffuse[1] = lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
+                diffuse[2] = lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
 
                 Vector3d halfVector = (viewVector + lightVector).normalized();
                 double specAngle = max(halfVector.dot(N), 0.0);
                 double shininess = 1.0/closestObject->getHitObject()->roughness;
 
-                specular[0] = lightCol.r * pow(specAngle, shininess) * Ks.x();
-                specular[1] = lightCol.g * pow(specAngle, shininess) * Ks.y();
-                specular[2] = lightCol.b * pow(specAngle, shininess) * Ks.z();
+                specular[0] = lightCol.r * pow(specAngle, shininess) * Ks.x() * (1.0 - reflectRatio - refractRatio);
+                specular[1] = lightCol.g * pow(specAngle, shininess) * Ks.y() * (1.0 - reflectRatio - refractRatio);
+                specular[2] = lightCol.b * pow(specAngle, shininess) * Ks.z() * (1.0 - reflectRatio - refractRatio);
             }
 
             Color* blinnPhongColor = new Color();
@@ -216,8 +225,6 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
     finalClr.b = 0.0;
     finalClr.f = 0.0;
 
-    double reflectRatio = closestObject->getHitObject()->reflection;
-    double refractRatio = closestObject->getHitObject()->getColor()->getRGBA().w();
     N.normalize();
     d.normalize();
 
@@ -298,9 +305,9 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
         finalClr.b += rtnClr.b * refractRatio;
     }
     
-    finalClr.r += (1.0 * ambient.x()) + (1.0 - reflectRatio - refractRatio) * (diffuse.x() + specular.x());
-    finalClr.g += (1.0 * ambient.y()) + (1.0 - reflectRatio - refractRatio) * (diffuse.y() + specular.y());
-    finalClr.b += (1.0 * ambient.z()) + (1.0 - reflectRatio - refractRatio) * (diffuse.z() + specular.z());
+    finalClr.r += ambient.x() + diffuse.x() + specular.x();
+    finalClr.g += ambient.y() + diffuse.y() + specular.y();
+    finalClr.b += ambient.z() + diffuse.z() + specular.z();
 
     return finalClr;
 }
