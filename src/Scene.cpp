@@ -122,74 +122,76 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
         N = closestObject->getHitObject()->getNormal(hitPoint);
         N.normalize();
 
-        // Calculate d for light.
-        Vector3d dLight = (lights[0]->getLocation() - hitPoint).normalized();
-        double distToLight = (lights[0]->getLocation() - hitPoint).norm();
-
-        // Check if object is in shadowed area.
-        bool inShadow = isObjectInShadow(closestObject, hitPoint, dLight, distToLight);
-
-        lightVector = (lights[0]->getLocation() - hitPoint).normalized();
-        Vector3d viewVector = (*Po - hitPoint).normalized();
-
-        Vector3d Ka = closestObject->getHitObject()->ambient
-                      * closestObject->getHitObject()->getColor()->getRGB();
-        Vector3d Kd = closestObject->getHitObject()->diffuse
-                      * closestObject->getHitObject()->getColor()->getRGB();
-        Vector3d Ks = closestObject->getHitObject()->specular
-                      * closestObject->getHitObject()->getColor()->getRGB();
-
-        color_t lightCol = lights[0]->getColor()->getColor();
-
-        double NdotL = max(N.dot(lightVector), 0.0);
-
-        ambient = Vector3d(0.0, 0.0, 0.0);
-        ambient[0] = Ka.x();
-        ambient[1] = Ka.y();
-        ambient[2] = Ka.z();
-
-        // If just lambertian, else do blinn phong shading.
-        if (shadeType == 1)
+        for (int lightNdx = 0; lightNdx < lights.size(); lightNdx++)
         {
-            diffuse = Vector3d(0.0, 0.0, 0.0);
+            // Calculate d for light.
+            Vector3d dLight = (lights[lightNdx]->getLocation() - hitPoint).normalized();
+            double distToLight = (lights[lightNdx]->getLocation() - hitPoint).norm();
+            lightVector = (lights[lightNdx]->getLocation() - hitPoint).normalized();
+            color_t lightCol = lights[lightNdx]->getColor()->getColor();
 
-            if(!inShadow)
+            // Check if object is in shadowed area.
+            bool inShadow = isObjectInShadow(closestObject, hitPoint, dLight, distToLight);
+
+            Vector3d viewVector = (*Po - hitPoint).normalized();
+
+            Vector3d Ka = closestObject->getHitObject()->ambient
+                          * closestObject->getHitObject()->getColor()->getRGB();
+            Vector3d Kd = closestObject->getHitObject()->diffuse
+                          * closestObject->getHitObject()->getColor()->getRGB();
+            Vector3d Ks = closestObject->getHitObject()->specular
+                          * closestObject->getHitObject()->getColor()->getRGB();
+
+            double NdotL = max(N.dot(lightVector), 0.0);
+
+            ambient = Vector3d(0.0, 0.0, 0.0);
+            ambient[0] = Ka.x();
+            ambient[1] = Ka.y();
+            ambient[2] = Ka.z();
+
+            // If just lambertian, else do blinn phong shading.
+            if (shadeType == 1)
             {
-                diffuse[0] = lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
-                diffuse[1] = lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
-                diffuse[2] = lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
+                diffuse = Vector3d(0.0, 0.0, 0.0);
+
+                if(!inShadow)
+                {
+                    diffuse[0] += lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[1] += lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[2] += lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
+                }
+
+                Color* lambertianColor = new Color();
+                lambertianColor->setRGB(diffuse);
+                localClr = lambertianColor->getColor();
+                delete lambertianColor;
             }
-
-            Color* lambertianColor = new Color();
-            lambertianColor->setRGB(diffuse);
-            localClr = lambertianColor->getColor();
-            delete lambertianColor;
-        }
-        else
-        {
-            // Blinn Phong Shading
-            diffuse = Vector3d(0.0, 0.0, 0.0);
-            specular = Vector3d(0.0, 0.0, 0.0);
-
-            if (!inShadow)
+            else
             {
-                diffuse[0] = lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
-                diffuse[1] = lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
-                diffuse[2] = lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
+                // Blinn Phong Shading
+                diffuse = Vector3d(0.0, 0.0, 0.0);
+                specular = Vector3d(0.0, 0.0, 0.0);
 
-                Vector3d halfVector = (viewVector + lightVector).normalized();
-                double specAngle = max(halfVector.dot(N), 0.0);
-                double shininess = 1.0/closestObject->getHitObject()->roughness;
+                if (!inShadow)
+                {
+                    diffuse[0] += lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[1] += lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[2] += lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
 
-                specular[0] = lightCol.r * pow(specAngle, shininess) * Ks.x() * (1.0 - reflectRatio - refractRatio);
-                specular[1] = lightCol.g * pow(specAngle, shininess) * Ks.y() * (1.0 - reflectRatio - refractRatio);
-                specular[2] = lightCol.b * pow(specAngle, shininess) * Ks.z() * (1.0 - reflectRatio - refractRatio);
+                    Vector3d halfVector = (viewVector + lightVector).normalized();
+                    double specAngle = max(halfVector.dot(N), 0.0);
+                    double shininess = 1.0/closestObject->getHitObject()->roughness;
+
+                    specular[0] += lightCol.r * pow(specAngle, shininess) * Ks.x() * (1.0 - reflectRatio - refractRatio);
+                    specular[1] += lightCol.g * pow(specAngle, shininess) * Ks.y() * (1.0 - reflectRatio - refractRatio);
+                    specular[2] += lightCol.b * pow(specAngle, shininess) * Ks.z() * (1.0 - reflectRatio - refractRatio);
+                }
+
+                Color* blinnPhongColor = new Color();
+                blinnPhongColor->setRGB(ambient + diffuse + specular);
+                localClr = blinnPhongColor->getColor();
+                delete blinnPhongColor;
             }
-
-            Color* blinnPhongColor = new Color();
-            blinnPhongColor->setRGB(ambient + diffuse + specular);
-            localClr = blinnPhongColor->getColor();
-            delete blinnPhongColor;
         }
 
         if (debug)

@@ -6,9 +6,7 @@ camera {
   look_at   <0, 0, 0>
 }
 
-light_source {<-5, 3, 0> color rgb <0.3, 0.5, 0.3>}
-
-light_source {<5, 10, 5> color rgb <0.3, 0.4, 0.5>}
+light_source {<-5, 3, 0> color rgb <1.0, 1.0, 1.0>}
 
 // floor
 plane {<0, 1, 0>, -5  
