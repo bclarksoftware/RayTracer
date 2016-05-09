@@ -31,8 +31,6 @@ public:
     double reflection;
     double refraction;
     double ior;
-    
-    Eigen::Vector3d translate;
 
     bool isSphere();
     bool isPlane();
@@ -40,10 +38,18 @@ public:
 
     int getId();
 
+    void applyScale(double x, double y, double z);
+    void applyRotation(double x, double y, double z);
+    void applyTranslation(double x, double y, double z);
+
+    Eigen::Matrix4d getCTM();
+
 protected:
     int type;
     static int idTracker;
     int objectId;
+
+    Eigen::Matrix4d currTransMatrix;
 
 private:
     std::shared_ptr<Color> color;

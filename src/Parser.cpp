@@ -304,10 +304,44 @@ void Parser::parseSphere(ifstream* readFile)
                     temp = strtok(NULL, " ");
                 }
             }
+            else if (value.compare("scale") == 0)
+            {
+                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+
+                newSphere->applyScale(vals[0], vals[1], vals[2]);
+            }
+            else if (value.compare("rotate") == 0)
+            {
+                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+
+                newSphere->applyRotation(vals[0], vals[1], vals[2]);
+            }
             else if (value.compare("translate") == 0)
             {
-                //TODO: Implement Me
-//                cout << "translate" << endl;
+                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+
+                newSphere->applyTranslation(vals[0], vals[1], vals[2]);
             }
         }
     }
@@ -426,10 +460,44 @@ void Parser::parsePlane(std::ifstream* readFile)
                     temp = strtok(NULL, " ");
                 }
             }
+            else if (value.compare("scale") == 0)
+            {
+                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+
+                newPlane->applyScale(vals[0], vals[1], vals[2]);
+            }
+            else if (value.compare("rotate") == 0)
+            {
+                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+
+                newPlane->applyRotation(vals[0], vals[1], vals[2]);
+            }
             else if (value.compare("translate") == 0)
             {
-                //TODO: Implement Me
-                //                cout << "translate" << endl;
+                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+
+                newPlane->applyTranslation(vals[0], vals[1], vals[2]);
             }
         }
     }
@@ -555,10 +623,44 @@ void Parser::parseTriangle(std::ifstream* readFile)
                     temp = strtok(NULL, " ");
                 }
             }
+            else if (value.compare("scale") == 0)
+            {
+                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+
+                newTriangle->applyScale(vals[0], vals[1], vals[2]);
+            }
+            else if (value.compare("rotate") == 0)
+            {
+                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+
+                newTriangle->applyRotation(vals[0], vals[1], vals[2]);
+            }
             else if (value.compare("translate") == 0)
             {
-                //TODO: Implement Me
-                //                cout << "translate" << endl;
+                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+
+                newTriangle->applyTranslation(vals[0], vals[1], vals[2]);
             }
         }
     }

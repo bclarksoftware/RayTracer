@@ -86,29 +86,28 @@ shared_ptr<RTIntersectObject> RTSphere::getIntersection(Vector3d Po, Vector3d d)
             this->hitData->setColor(this->getColor());
             this->hitData->setHitObject(this);
         }
-        else //if (t1 >= 0.0 || t2 >= 0.0) // Both are positive
+        else // Both are positive
         {
             // Check which one is closer (least)
             t = t1 < t2 ? t1: t2;
-            
-            //if (t >= 0)
-            //{
-                this->hitData->setIntersected(true);
-                this->hitData->setTValue(t);
-                this->hitData->setColor(this->getColor());
-                this->hitData->setHitObject(this);
-            //}
+
+            this->hitData->setIntersected(true);
+            this->hitData->setTValue(t);
+            this->hitData->setColor(this->getColor());
+            this->hitData->setHitObject(this);
         }
     }
-
-//    printf("\tReturn T Value: %lf\n", this->hitData->getTValue());
     
     return this->hitData;
 }
 
 Vector3d RTSphere::getNormal(Eigen::Vector3d hitPoint)
 {
-    return (hitPoint - this->center) / this->radius;
+    Vector3d normal = (hitPoint - this->center) / this->radius;
+
+    Vector4d normalWorld = this->getCTM().inverse() * Vector4d(normal.x(), normal.y(), normal.z(), 0.0);
+
+    return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }
 
 string RTSphere::toString()
