@@ -278,26 +278,24 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
         color_t rtnClr;
 
-        N.normalize();
-        d.normalize();
-
         double dDotN = -d.dot(N);
 
         if (dDotN < 0) // Coming out of something.
         {
             n1 = closestObject->getHitObject()->ior;
-            n2 = 1.0;
-            N = N * -1.0;
-            dDotN = -dDotN;
-
+            
             if (indexStack.size() != 1)
             {
                 indexStack.pop();
             }
+            
+            n2 = indexStack.top();
+            N = N * -1.0;
+            dDotN = -dDotN;
         }
         else // Going into something.
         {
-            n1 = 1.0;
+            n1 = indexStack.top();
             n2 = closestObject->getHitObject()->ior;
             indexStack.push(n2);
         }
