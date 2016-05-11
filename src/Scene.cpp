@@ -290,7 +290,10 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
             N = N * -1.0;
             dDotN = -dDotN;
 
-            indexStack.pop();
+            if (indexStack.size() != 1)
+            {
+                indexStack.pop();
+            }
         }
         else // Going into something.
         {
