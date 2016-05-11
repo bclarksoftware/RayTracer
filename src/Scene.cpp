@@ -110,7 +110,368 @@ bool Scene::isObjectInShadow(RTIntersectObject* object, Vector3d hitPoint, Vecto
     return false;
 }
 
-color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
+color_t Scene::rayCastReflection(Vector3d* Po, Vector3d d)
+{
+    double reflectRatio, refractRatio;
+    color_t localClr;
+    Vector3d ambient, diffuse, specular, lightVector;
+    Vector3d hitPoint, N;
+    
+    // Finds the closest intersected object.
+    RTIntersectObject* closestObject = getClosestIntersectedObject(Po, d);
+    
+    if (debug)
+    {
+        cout << "Ray: {" << Po->x() << ", " << Po->y() << ", " << Po->z() << "} -> {"
+        << d.x() << ", " << d.y() << ", " << d.z() << "}" << endl;
+    }
+    
+    if (closestObject != NULL)
+    {
+        reflectRatio = closestObject->getHitObject()->reflection;
+        refractRatio = closestObject->getHitObject()->getColor()->getRGBA().w();
+        
+        hitPoint = (*Po + (closestObject->getTValue() * d));
+        N = closestObject->getHitObject()->getNormal(hitPoint);
+        N.normalize();
+        
+        for (int lightNdx = 0; lightNdx < lights.size(); lightNdx++)
+        {
+            // Calculate d for light.
+            Vector3d dLight = (lights[lightNdx]->getLocation() - hitPoint).normalized();
+            double distToLight = (lights[lightNdx]->getLocation() - hitPoint).norm();
+            lightVector = (lights[lightNdx]->getLocation() - hitPoint).normalized();
+            color_t lightCol = lights[lightNdx]->getColor()->getColor();
+            
+            // Check if object is in shadowed area.
+            bool inShadow = isObjectInShadow(closestObject, hitPoint, dLight, distToLight);
+            
+            Vector3d viewVector = (*Po - hitPoint).normalized();
+            
+            Vector3d Ka = closestObject->getHitObject()->ambient
+            * closestObject->getHitObject()->getColor()->getRGB();
+            Vector3d Kd = closestObject->getHitObject()->diffuse
+            * closestObject->getHitObject()->getColor()->getRGB();
+            Vector3d Ks = closestObject->getHitObject()->specular
+            * closestObject->getHitObject()->getColor()->getRGB();
+            
+            double NdotL = max(N.dot(lightVector), 0.0);
+            
+            ambient = Vector3d(0.0, 0.0, 0.0);
+            ambient[0] = Ka.x();
+            ambient[1] = Ka.y();
+            ambient[2] = Ka.z();
+            
+            // If just lambertian, else do blinn phong shading.
+            if (shadeType == 1)
+            {
+                diffuse = Vector3d(0.0, 0.0, 0.0);
+                
+                if(!inShadow)
+                {
+                    diffuse[0] += lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[1] += lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[2] += lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
+                }
+                
+                Color* lambertianColor = new Color();
+                lambertianColor->setRGB(diffuse);
+                localClr = lambertianColor->getColor();
+                delete lambertianColor;
+            }
+            else
+            {
+                // Blinn Phong Shading
+                diffuse = Vector3d(0.0, 0.0, 0.0);
+                specular = Vector3d(0.0, 0.0, 0.0);
+                
+                if (!inShadow)
+                {
+                    diffuse[0] += lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[1] += lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[2] += lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
+                    
+                    Vector3d halfVector = (viewVector + lightVector).normalized();
+                    double specAngle = max(halfVector.dot(N), 0.0);
+                    double shininess = 1.0/closestObject->getHitObject()->roughness;
+                    
+                    specular[0] += lightCol.r * pow(specAngle, shininess) * Ks.x() * (1.0 - reflectRatio - refractRatio);
+                    specular[1] += lightCol.g * pow(specAngle, shininess) * Ks.y() * (1.0 - reflectRatio - refractRatio);
+                    specular[2] += lightCol.b * pow(specAngle, shininess) * Ks.z() * (1.0 - reflectRatio - refractRatio);
+                }
+                
+                Color* blinnPhongColor = new Color();
+                blinnPhongColor->setRGB(ambient + diffuse + specular);
+                localClr = blinnPhongColor->getColor();
+                delete blinnPhongColor;
+            }
+        }
+        
+        if (debug)
+        {
+            cout << "Hit Object ID (" << closestObject->getHitObject()->getId() << ") "
+            << "at T = " << closestObject->getTValue() << ", Interesection = {"
+            << hitPoint.x() << ", " << hitPoint.y() << ", " << hitPoint.z() << "}" << endl;
+            
+            cout << "Ambient: " << ambient.x() << ", " << ambient.y() << ", " << ambient.z() << endl;
+            cout << "Diffuse: " << diffuse.x() << ", " << diffuse.y() << ", " << diffuse.z() << endl;
+            cout << "Specular: " << specular.x() << ", " << specular.y() << ", " << specular.z() << endl;
+            cout << "----" << endl;
+        }
+    }
+    else {
+        localClr.r = 0.0;
+        localClr.g = 0.0;
+        localClr.b = 0.0;
+        localClr.f = 0.0;
+        
+        if (debug)
+        {
+            cout << "No Intersection" << endl;
+            cout << "----" << endl;
+        }
+        
+        return localClr;
+    }
+    
+    color_t finalClr;
+    finalClr.r = 0.0;
+    finalClr.g = 0.0;
+    finalClr.b = 0.0;
+    finalClr.f = 0.0;
+    
+    N.normalize();
+    d.normalize();
+    
+    if (reflectCount++ < MAX_RECURSE && closestObject->getHitObject()->reflection > 0.0)
+    {
+        Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
+        Vector3d reflectRay = (d + 2.0 * N.dot(-d) * N).normalized();
+        
+        // Move the ray a little forward.
+        *newP = *newP + 0.00001 * reflectRay;
+        
+        if (debug)
+        {
+            cout << "Iteration type: Reflection" << endl;
+        }
+        
+        color_t rtnClr = rayCastReflection(newP, reflectRay);
+        delete newP;
+        
+        // Color black meaning we hit nothing.
+        if (rtnClr.r == 0.0 && rtnClr.g == 0.0 && rtnClr.b == 0.0)
+        {
+            reflectRatio = 0.0;
+        }
+        
+        finalClr.r += rtnClr.r * reflectRatio;
+        finalClr.g += rtnClr.g * reflectRatio;
+        finalClr.b += rtnClr.b * reflectRatio;
+    }
+    
+    finalClr.r += ambient.x() + diffuse.x() + specular.x();
+    finalClr.g += ambient.y() + diffuse.y() + specular.y();
+    finalClr.b += ambient.z() + diffuse.z() + specular.z();
+    
+    return finalClr;
+}
+
+color_t Scene::rayCastRefraction(Vector3d* Po, Vector3d d)
+{
+    double reflectRatio, refractRatio;
+    color_t localClr;
+    Vector3d ambient, diffuse, specular, lightVector;
+    Vector3d hitPoint, N;
+    
+    // Finds the closest intersected object.
+    RTIntersectObject* closestObject = getClosestIntersectedObject(Po, d);
+    
+    if (debug)
+    {
+        cout << "Ray: {" << Po->x() << ", " << Po->y() << ", " << Po->z() << "} -> {"
+        << d.x() << ", " << d.y() << ", " << d.z() << "}" << endl;
+    }
+    
+    if (closestObject != NULL)
+    {
+        reflectRatio = closestObject->getHitObject()->reflection;
+        refractRatio = closestObject->getHitObject()->getColor()->getRGBA().w();
+        
+        hitPoint = (*Po + (closestObject->getTValue() * d));
+        N = closestObject->getHitObject()->getNormal(hitPoint);
+        N.normalize();
+        
+        for (int lightNdx = 0; lightNdx < lights.size(); lightNdx++)
+        {
+            // Calculate d for light.
+            Vector3d dLight = (lights[lightNdx]->getLocation() - hitPoint).normalized();
+            double distToLight = (lights[lightNdx]->getLocation() - hitPoint).norm();
+            lightVector = (lights[lightNdx]->getLocation() - hitPoint).normalized();
+            color_t lightCol = lights[lightNdx]->getColor()->getColor();
+            
+            // Check if object is in shadowed area.
+            bool inShadow = isObjectInShadow(closestObject, hitPoint, dLight, distToLight);
+            
+            Vector3d viewVector = (*Po - hitPoint).normalized();
+            
+            Vector3d Ka = closestObject->getHitObject()->ambient
+            * closestObject->getHitObject()->getColor()->getRGB();
+            Vector3d Kd = closestObject->getHitObject()->diffuse
+            * closestObject->getHitObject()->getColor()->getRGB();
+            Vector3d Ks = closestObject->getHitObject()->specular
+            * closestObject->getHitObject()->getColor()->getRGB();
+            
+            double NdotL = max(N.dot(lightVector), 0.0);
+            
+            ambient = Vector3d(0.0, 0.0, 0.0);
+            ambient[0] = Ka.x();
+            ambient[1] = Ka.y();
+            ambient[2] = Ka.z();
+            
+            // If just lambertian, else do blinn phong shading.
+            if (shadeType == 1)
+            {
+                diffuse = Vector3d(0.0, 0.0, 0.0);
+                
+                if(!inShadow)
+                {
+                    diffuse[0] += lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[1] += lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[2] += lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
+                }
+                
+                Color* lambertianColor = new Color();
+                lambertianColor->setRGB(diffuse);
+                localClr = lambertianColor->getColor();
+                delete lambertianColor;
+            }
+            else
+            {
+                // Blinn Phong Shading
+                diffuse = Vector3d(0.0, 0.0, 0.0);
+                specular = Vector3d(0.0, 0.0, 0.0);
+                
+                if (!inShadow)
+                {
+                    diffuse[0] += lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[1] += lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
+                    diffuse[2] += lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
+                    
+                    Vector3d halfVector = (viewVector + lightVector).normalized();
+                    double specAngle = max(halfVector.dot(N), 0.0);
+                    double shininess = 1.0/closestObject->getHitObject()->roughness;
+                    
+                    specular[0] += lightCol.r * pow(specAngle, shininess) * Ks.x() * (1.0 - reflectRatio - refractRatio);
+                    specular[1] += lightCol.g * pow(specAngle, shininess) * Ks.y() * (1.0 - reflectRatio - refractRatio);
+                    specular[2] += lightCol.b * pow(specAngle, shininess) * Ks.z() * (1.0 - reflectRatio - refractRatio);
+                }
+                
+                Color* blinnPhongColor = new Color();
+                blinnPhongColor->setRGB(ambient + diffuse + specular);
+                localClr = blinnPhongColor->getColor();
+                delete blinnPhongColor;
+            }
+        }
+        
+        if (debug)
+        {
+            cout << "Hit Object ID (" << closestObject->getHitObject()->getId() << ") "
+            << "at T = " << closestObject->getTValue() << ", Interesection = {"
+            << hitPoint.x() << ", " << hitPoint.y() << ", " << hitPoint.z() << "}" << endl;
+            
+            cout << "Ambient: " << ambient.x() << ", " << ambient.y() << ", " << ambient.z() << endl;
+            cout << "Diffuse: " << diffuse.x() << ", " << diffuse.y() << ", " << diffuse.z() << endl;
+            cout << "Specular: " << specular.x() << ", " << specular.y() << ", " << specular.z() << endl;
+            cout << "----" << endl;
+        }
+    }
+    else {
+        localClr.r = 0.0;
+        localClr.g = 0.0;
+        localClr.b = 0.0;
+        localClr.f = 0.0;
+        
+        if (debug)
+        {
+            cout << "No Intersection" << endl;
+            cout << "----" << endl;
+        }
+        
+        return localClr;
+    }
+    
+    color_t finalClr;
+    finalClr.r = 0.0;
+    finalClr.g = 0.0;
+    finalClr.b = 0.0;
+    finalClr.f = 0.0;
+    
+    N.normalize();
+    d.normalize();
+    
+    if (refractCount++ < MAX_RECURSE && closestObject->getHitObject()->refraction == 1.0)
+    {
+        Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
+        Vector3d refractRay;
+        double n1, n2;
+        
+        color_t rtnClr;
+        
+        double dDotN = -d.dot(N);
+        
+        if (dDotN < 0) // Coming out of something.
+        {
+            n1 = closestObject->getHitObject()->ior;
+            
+            if (indexStack.size() != 1)
+            {
+                indexStack.pop();
+            }
+            
+            n2 = indexStack.top();
+            N = N * -1.0;
+            dDotN = -dDotN;
+        }
+        else // Going into something.
+        {
+            n1 = indexStack.top();
+            n2 = closestObject->getHitObject()->ior;
+            indexStack.push(n2);
+        }
+        
+        double n = n1 / n2;
+        double radicand = 1.0 - (n * n) * (1.0 - (dDotN * dDotN));
+        
+        if (radicand >= 0.0)
+        {
+            Vector3d T = (n * (d + N * (dDotN)) - (N * sqrt( radicand ))).normalized();
+            
+            // Move the ray a little forward.
+            *newP = *newP + 0.00001 * T;
+            
+            if (debug)
+            {
+                cout << "Iteration type: Refraction" << endl;
+            }
+            
+            rtnClr = rayCastRefraction(newP, T);
+            delete newP;
+            
+            finalClr.r += rtnClr.r * refractRatio;
+            finalClr.g += rtnClr.g * refractRatio;
+            finalClr.b += rtnClr.b * refractRatio;
+        }
+    }
+    
+    finalClr.r += ambient.x() + diffuse.x() + specular.x();
+    finalClr.g += ambient.y() + diffuse.y() + specular.y();
+    finalClr.b += ambient.z() + diffuse.z() + specular.z();
+    
+    return finalClr;
+}
+
+color_t Scene::rayCast(Vector3d* Po, Vector3d d)
 {
     double reflectRatio, refractRatio;
     color_t localClr;
@@ -256,7 +617,7 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
             cout << "Iteration type: Reflection" << endl;
         }
 
-        color_t rtnClr = rayCast(newP, reflectRay, 1.0);
+        color_t rtnClr = rayCastReflection(newP, reflectRay);
         delete newP;
 
         // Color black meaning we hit nothing.
@@ -274,7 +635,7 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
     {
         Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
         Vector3d refractRay;
-        double n2;
+        double n1, n2;
 
         color_t rtnClr;
 
@@ -305,7 +666,7 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
         if (radicand >= 0.0)
         {
-            Vector3d T = n * (d + N * (dDotN)) - (N * sqrt( radicand ));
+            Vector3d T = (n * (d + N * (dDotN)) - (N * sqrt( radicand ))).normalized();
 
             // Move the ray a little forward.
             *newP = *newP + 0.00001 * T;
@@ -315,7 +676,7 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
                 cout << "Iteration type: Refraction" << endl;
             }
 
-            rtnClr = rayCast(newP, T, indexStack.top());
+            rtnClr = rayCastRefraction(newP, T);
             delete newP;
             
             finalClr.r += rtnClr.r * refractRatio;
@@ -327,6 +688,8 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
     finalClr.r += ambient.x() + diffuse.x() + specular.x();
     finalClr.g += ambient.y() + diffuse.y() + specular.y();
     finalClr.b += ambient.z() + diffuse.z() + specular.z();
+    
+    
 
     return finalClr;
 }
@@ -387,7 +750,7 @@ void Scene::render()
                             cout << "----" << endl;
                             cout << "Iteration type: Primary" << endl;
 
-                            color_t finalColor = rayCast(Po, d, indexStack.top());
+                            color_t finalColor = rayCast(Po, d);
 
                             cout << "Final Color: <" << finalColor.r * 255.0 << ", " << finalColor.g * 255.0
                                  << ", " << finalColor.b * 255.0 << ">" << endl;
@@ -400,7 +763,7 @@ void Scene::render()
             else
             {
                 // Raycast returns the color of the pixel.
-                image->pixel(i, j, rayCast(Po, d, indexStack.top()));
+                image->pixel(i, j, rayCast(Po, d));
             }
         }
     }

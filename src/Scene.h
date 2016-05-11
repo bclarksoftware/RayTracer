@@ -59,7 +59,10 @@ private:
     bool isObjectInShadow(RTIntersectObject* object, Eigen::Vector3d hitPoint,
                           Eigen::Vector3d dLight, double distToLight);
 
-    color_t rayCast(Eigen::Vector3d* Po, Eigen::Vector3d d, double n1);
+    color_t rayCast(Eigen::Vector3d* Po, Eigen::Vector3d d);
+    
+    color_t rayCastReflection(Eigen::Vector3d* Po, Eigen::Vector3d d);
+    color_t rayCastRefraction(Eigen::Vector3d* Po, Eigen::Vector3d d);
 
 };
 
