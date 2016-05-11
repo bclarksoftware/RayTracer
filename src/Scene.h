@@ -13,6 +13,7 @@
 #include "Camera.h"
 #include "Light.h"
 #include "Color.h"
+#include "Shader.h"
 
 #define EIGEN_DONT_ALIGN_STATICALLY
 #include <Eigen/Dense>
@@ -52,12 +53,12 @@ private:
     std::vector<std::shared_ptr<Light>> lights;
     std::vector<std::shared_ptr<RTObject>> objects;
     
+    Shader* shader;
+    
     int debug;
     std::vector<std::pair<int,int>> testPixels;
 
     RTIntersectObject* getClosestIntersectedObject(Eigen::Vector3d* Po, Eigen::Vector3d d);
-    bool isObjectInShadow(RTIntersectObject* object, Eigen::Vector3d hitPoint,
-                          Eigen::Vector3d dLight, double distToLight);
 
     color_t rayCast(Eigen::Vector3d* Po, Eigen::Vector3d d);
     
