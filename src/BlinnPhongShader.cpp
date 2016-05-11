@@ -17,38 +17,6 @@ BlinnPhongShader::~BlinnPhongShader()
     
 }
 
-// Checks to see if the closest intersected object is in a shadow.
-bool BlinnPhongShader::isObjectInShadow(RTIntersectObject* object, Vector3d hitPoint,
-                                        Vector3d dLight, double distToLight)
-{
-    //Temporarily save the old t value for our closest object.
-    double origTVal = object->getTValue();
-    
-    // Loop over objects to determine lighting.
-    for (int k = 0; k < objects.size(); k++)
-    {
-        Vector4d PoWorld = objects[k]->getCTM().inverse() * Vector4d(hitPoint.x(), hitPoint.y(), hitPoint.z(), 1.0);
-        Vector4d dWorld = objects[k]->getCTM().inverse() * Vector4d(dLight.x(), dLight.y(), dLight.z(), 0.0);
-        
-        shared_ptr<RTIntersectObject> intersectObj =
-        objects[k]->getIntersection(Vector3d(PoWorld.x(), PoWorld.y(), PoWorld.z()),
-                                    Vector3d(dWorld.x(), dWorld.y(), dWorld.z()));
-        double nextTValue = intersectObj->getTValue();
-        
-        if (intersectObj->hasIntersected() && nextTValue > 0.0 && nextTValue <= distToLight)
-        {
-            if (intersectObj.get() != object)
-            {
-                object->setTValue(origTVal);
-                return true;
-            }
-        }
-    }
-    
-    object->setTValue(origTVal);
-    return false;
-}
-
 color_t BlinnPhongShader::getLocalColor(Vector3d* Po, Vector3d d, RTIntersectObject* closestObject)
 {
     color_t localColor;

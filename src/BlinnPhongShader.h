@@ -18,8 +18,6 @@ public:
     virtual std::string toString();
     
 private:
-    bool isObjectInShadow(RTIntersectObject* object, Eigen::Vector3d hitPoint,
-                          Eigen::Vector3d dLight, double distToLight);
     
 };
 

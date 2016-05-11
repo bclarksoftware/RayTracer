@@ -30,6 +30,9 @@ protected:
     std::vector<std::shared_ptr<Light>> lights;
     std::vector<std::shared_ptr<RTObject>> objects;
     
+    bool isObjectInShadow(RTIntersectObject* object, Eigen::Vector3d hitPoint,
+                          Eigen::Vector3d dLight, double distToLight);
+    
 private:
     
 };
