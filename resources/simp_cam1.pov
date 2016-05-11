@@ -2,7 +2,7 @@
 
 //camera pointing around 45 degrees
 camera {
-location  <7, 0,7> 
+location  <7, 0, 7>
 up        <0,  1,  0>
 right     <.94, 0,  -.94>
 look_at   <0, 0, 0>

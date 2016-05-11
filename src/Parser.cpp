@@ -90,12 +90,12 @@ void Parser::parseCamera(ifstream* readFile)
             if (value.compare("location") == 0)
             {
                 line = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
-                
-                char* temp = strtok((char*)line.c_str(), " ,");
+
+                char* temp = strtok((char*)line.c_str(), " ,>");
                 while (temp != NULL)
                 {
                     vals.push_back(stod(string(temp)));
-                    temp = strtok(NULL, " ,");
+                    temp = strtok(NULL, " ,>");
                 }
                 
                 camera->setLocation(new Vector3d(vals[0], vals[1], vals[2]));
