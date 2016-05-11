@@ -10,7 +10,7 @@
 
 class LambertianShader: public Shader {
 public:
-    LambertianShader();
+    LambertianShader(bool debug);
     ~LambertianShader();
     
     virtual color_t getLocalColor(Eigen::Vector3d* Po, Eigen::Vector3d d,

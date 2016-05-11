@@ -25,6 +25,8 @@ public:
     virtual std::string toString() = 0;
 
 protected:
+    bool debug;
+    
     std::vector<std::shared_ptr<Light>> lights;
     std::vector<std::shared_ptr<RTObject>> objects;
     

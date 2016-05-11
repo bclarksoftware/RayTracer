@@ -5,7 +5,7 @@ using namespace Eigen;
 
 Shader::Shader()
 {
-
+    this->debug = false;
 }
 
 Shader::~Shader()

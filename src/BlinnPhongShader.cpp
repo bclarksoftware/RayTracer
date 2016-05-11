@@ -1,14 +1,15 @@
 #include "BlinnPhongShader.h"
 
+#include <iostream>
 #include "RTObject.h"
 
 using namespace std;
 using namespace Eigen;
 
-BlinnPhongShader::BlinnPhongShader()
+BlinnPhongShader::BlinnPhongShader(bool debug)
 : Shader()
 {
-
+    this->debug = debug;
 }
 
 BlinnPhongShader::~BlinnPhongShader()
@@ -104,6 +105,14 @@ color_t BlinnPhongShader::getLocalColor(Vector3d* Po, Vector3d d, RTIntersectObj
             specular[0] += lightCol.r * pow(specAngle, shininess) * Ks.x() * (1.0 - reflectRatio - refractRatio);
             specular[1] += lightCol.g * pow(specAngle, shininess) * Ks.y() * (1.0 - reflectRatio - refractRatio);
             specular[2] += lightCol.b * pow(specAngle, shininess) * Ks.z() * (1.0 - reflectRatio - refractRatio);
+        }
+        
+        if (debug)
+        {
+            cout << "Ambient: " << ambient.x() << ", " << ambient.y() << ", " << ambient.z() << endl;
+            cout << "Diffuse: " << diffuse.x() << ", " << diffuse.y() << ", " << diffuse.z() << endl;
+            cout << "Specular: " << specular.x() << ", " << specular.y() << ", " << specular.z() << endl;
+            cout << "----" << endl;
         }
         
         Color* blinnPhongColor = new Color();

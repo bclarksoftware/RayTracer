@@ -10,7 +10,7 @@
 
 class BlinnPhongShader: public Shader {
 public:
-    BlinnPhongShader();
+    BlinnPhongShader(bool debug);
     ~BlinnPhongShader();
     
     virtual color_t getLocalColor(Eigen::Vector3d* Po, Eigen::Vector3d d,

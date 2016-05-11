@@ -3,10 +3,10 @@
 using namespace std;
 using namespace Eigen;
 
-LambertianShader::LambertianShader()
+LambertianShader::LambertianShader(bool debug)
 : Shader()
 {
-    
+    this->debug = debug;
 }
 
 LambertianShader::~LambertianShader()
