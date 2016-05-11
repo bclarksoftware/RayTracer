@@ -319,11 +319,11 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d, double n1)
 
             rtnClr = rayCast(newP, T, indexStack.top());
             delete newP;
+            
+            finalClr.r += rtnClr.r * refractRatio;
+            finalClr.g += rtnClr.g * refractRatio;
+            finalClr.b += rtnClr.b * refractRatio;
         }
-
-        finalClr.r += rtnClr.r * refractRatio;
-        finalClr.g += rtnClr.g * refractRatio;
-        finalClr.b += rtnClr.b * refractRatio;
     }
     
     finalClr.r += ambient.x() + diffuse.x() + specular.x();
