@@ -20,7 +20,9 @@ BlinnPhongShader::~BlinnPhongShader()
 color_t BlinnPhongShader::getLocalColor(Vector3d* Po, Vector3d d, RTIntersectObject* closestObject)
 {
     color_t localColor;
-    Vector3d ambient = Vector3d(0.0, 0.0, 0.0);
+    Vector3d lightColorSum = Vector3d(0.0, 0.0, 0.0);
+    Vector3d ambient = closestObject->getHitObject()->ambient
+        * closestObject->getHitObject()->getColor()->getRGB();
     Vector3d diffuse = Vector3d(0.0, 0.0, 0.0);
     Vector3d specular = Vector3d(0.0, 0.0, 0.0);
     
@@ -43,22 +45,14 @@ color_t BlinnPhongShader::getLocalColor(Vector3d* Po, Vector3d d, RTIntersectObj
         
         Vector3d viewVector = (*Po - hitPoint).normalized();
         
-        Vector3d Ka = closestObject->getHitObject()->ambient
-        * closestObject->getHitObject()->getColor()->getRGB();
         Vector3d Kd = closestObject->getHitObject()->diffuse
-        * closestObject->getHitObject()->getColor()->getRGB();
+            * closestObject->getHitObject()->getColor()->getRGB();
         Vector3d Ks = closestObject->getHitObject()->specular
-        * closestObject->getHitObject()->getColor()->getRGB();
+            * closestObject->getHitObject()->getColor()->getRGB();
         
         double NdotL = max(N.dot(lightVector), 0.0);
         
-        ambient = Vector3d(0.0, 0.0, 0.0);
-        ambient[0] = Ka.x();
-        ambient[1] = Ka.y();
-        ambient[2] = Ka.z();
-        
-        diffuse = Vector3d(0.0, 0.0, 0.0);
-        specular = Vector3d(0.0, 0.0, 0.0);
+        lightColorSum = lightColorSum + lights[lightNdx]->getColor()->getRGB();
         
         if (!inShadow)
         {
@@ -74,20 +68,28 @@ color_t BlinnPhongShader::getLocalColor(Vector3d* Po, Vector3d d, RTIntersectObj
             specular[1] += lightCol.g * pow(specAngle, shininess) * Ks.y() * (1.0 - reflectRatio - refractRatio);
             specular[2] += lightCol.b * pow(specAngle, shininess) * Ks.z() * (1.0 - reflectRatio - refractRatio);
         }
-        
-        if (debug)
-        {
-            cout << "Ambient: " << ambient.x() << ", " << ambient.y() << ", " << ambient.z() << endl;
-            cout << "Diffuse: " << diffuse.x() << ", " << diffuse.y() << ", " << diffuse.z() << endl;
-            cout << "Specular: " << specular.x() << ", " << specular.y() << ", " << specular.z() << endl;
-            cout << "----" << endl;
-        }
-        
-        Color* blinnPhongColor = new Color();
-        blinnPhongColor->setRGB(ambient + diffuse + specular);
-        localColor = blinnPhongColor->getColor();
-        delete blinnPhongColor;
     }
+    
+    // Calculate ambient term across multiple light sources.
+    if (lights.size() > 0)
+    {
+        ambient[0] = ambient.x() * (lightColorSum.x()/lights.size());
+        ambient[1] = ambient.y() * (lightColorSum.y()/lights.size());
+        ambient[2] = ambient.z() * (lightColorSum.z()/lights.size());
+    }
+    
+    if (debug)
+    {
+        cout << "Ambient: " << ambient.x() << ", " << ambient.y() << ", " << ambient.z() << endl;
+        cout << "Diffuse: " << diffuse.x() << ", " << diffuse.y() << ", " << diffuse.z() << endl;
+        cout << "Specular: " << specular.x() << ", " << specular.y() << ", " << specular.z() << endl;
+        cout << "----" << endl;
+    }
+    
+    Color* blinnPhongColor = new Color();
+    blinnPhongColor->setRGB(ambient + diffuse + specular);
+    localColor = blinnPhongColor->getColor();
+    delete blinnPhongColor;
     
     return localColor;
 }
