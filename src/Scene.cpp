@@ -142,14 +142,20 @@ color_t Scene::rayCastReflection(Vector3d* Po, Vector3d d)
                 cout << "Iteration type: Reflection" << endl;
             }
             
+            if (closestObject->getHitObject()->refraction == 1.0)
+            {
+                double n2 = closestObject->getHitObject()->ior;
+                
+                double cosTheta = -d.dot(N) / (-d.norm() * N.norm());
+                double Ro = ((n2 - 1.0) * (n2 - 1.0)) / ((n2 + 1) * (n2 + 1));
+                
+                double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
+                
+                reflectRatio = R;
+            }
+            
             color_t rtnClr = rayCastReflection(newP, reflectRay);
             delete newP;
-            
-            // Color black meaning we hit nothing.
-            if (rtnClr.r == 0.0 && rtnClr.g == 0.0 && rtnClr.b == 0.0)
-            {
-                reflectRatio = 0.0;
-            }
             
             finalColor.r += rtnClr.r * reflectRatio;
             finalColor.g += rtnClr.g * reflectRatio;
@@ -234,6 +240,11 @@ color_t Scene::rayCastRefraction(Vector3d* Po, Vector3d d)
             double n = n1 / n2;
             double radicand = 1.0 - (n * n) * (1.0 - (dDotN * dDotN));
             
+            double cosTheta = dDotN / (-d.norm() * N.norm());
+            double Ro = ((n2 - 1.0) * (n2 - 1.0)) / ((n2 + 1) * (n2 + 1));
+            
+            double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
+            
             if (radicand >= 0.0)
             {
                 Vector3d T = (n * (d + N * (dDotN)) - (N * sqrt( radicand ))).normalized();
@@ -249,9 +260,9 @@ color_t Scene::rayCastRefraction(Vector3d* Po, Vector3d d)
                 rtnClr = rayCastRefraction(newP, T);
                 delete newP;
                 
-                finalColor.r += rtnClr.r * refractRatio;
-                finalColor.g += rtnClr.g * refractRatio;
-                finalColor.b += rtnClr.b * refractRatio;
+                finalColor.r += rtnClr.r * (1.0 - R);
+                finalColor.g += rtnClr.g * (1.0 - R);
+                finalColor.b += rtnClr.b * (1.0 - R);
             }
         }
     }
@@ -313,14 +324,20 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
                 cout << "Iteration type: Reflection" << endl;
             }
             
+            if (closestObject->getHitObject()->refraction == 1.0)
+            {
+                double n2 = closestObject->getHitObject()->ior;
+                
+                double cosTheta = -d.dot(N) / (-d.norm() * N.norm());
+                double Ro = ((n2 - 1.0) * (n2 - 1.0)) / ((n2 + 1) * (n2 + 1));
+                
+                double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
+                
+                reflectRatio = R;
+            }
+            
             color_t rtnClr = rayCastReflection(newP, reflectRay);
             delete newP;
-            
-            // Color black meaning we hit nothing.
-            if (rtnClr.r == 0.0 && rtnClr.g == 0.0 && rtnClr.b == 0.0)
-            {
-                reflectRatio = 0.0;
-            }
             
             finalColor.r += rtnClr.r * reflectRatio;
             finalColor.g += rtnClr.g * reflectRatio;
@@ -360,6 +377,11 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
             double n = n1 / n2;
             double radicand = 1.0 - (n * n) * (1.0 - (dDotN * dDotN));
             
+            double cosTheta = -d.dot(N) / (-d.norm() * N.norm());
+            double Ro = ((n2 - 1.0) * (n2 - 1.0)) / ((n2 + 1) * (n2 + 1));
+            
+            double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
+            
             if (radicand >= 0.0)
             {
                 Vector3d T = (n * (d + N * (dDotN)) - (N * sqrt( radicand ))).normalized();
@@ -375,10 +397,18 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
                 rtnClr = rayCastRefraction(newP, T);
                 delete newP;
                 
-                finalColor.r += rtnClr.r * refractRatio;
-                finalColor.g += rtnClr.g * refractRatio;
-                finalColor.b += rtnClr.b * refractRatio;
+                finalColor.r += rtnClr.r * (1.0 - R);
+                finalColor.g += rtnClr.g * (1.0 - R);
+                finalColor.b += rtnClr.b * (1.0 - R);
             }
+        }
+    }
+    else
+    {
+        if (debug)
+        {
+            cout << "No Intersection" << endl;
+            cout << "----" << endl;
         }
     }
     

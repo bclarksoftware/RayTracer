@@ -61,7 +61,6 @@ private:
     RTIntersectObject* getClosestIntersectedObject(Eigen::Vector3d* Po, Eigen::Vector3d d);
 
     color_t rayCast(Eigen::Vector3d* Po, Eigen::Vector3d d);
-    
     color_t rayCastReflection(Eigen::Vector3d* Po, Eigen::Vector3d d);
     color_t rayCastRefraction(Eigen::Vector3d* Po, Eigen::Vector3d d);
 
