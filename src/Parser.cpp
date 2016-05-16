@@ -95,7 +95,7 @@ void Parser::parseCamera(ifstream* readFile)
                 while (temp != NULL)
                 {
                     vals.push_back(stod(string(temp)));
-                    temp = strtok(NULL, " ,>");
+                    temp = strtok(NULL, " ,>\r\n");
                 }
                 
                 camera->setLocation(new Vector3d(vals[0], vals[1], vals[2]));
@@ -173,7 +173,7 @@ void Parser::parseLight(std::ifstream* readFile)
     while (temp != NULL)
     {
         vals.push_back(stod(string(temp)));
-        temp = strtok(NULL, " ,<>}");
+        temp = strtok(NULL, " ,<>\r\n}");
     }
     
     shared_ptr<Color> newColor = make_shared<Color>();
@@ -237,11 +237,11 @@ void Parser::parseSphere(ifstream* readFile)
             {
                 string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
                 
-                char* temp = strtok((char*)subLine.c_str(), " ,");
+                char* temp = strtok((char*)subLine.c_str(), " ,<>{}");
                 while (temp != NULL)
                 {
                     vals.push_back(stod(string(temp)));
-                    temp = strtok(NULL, " ,");
+                    temp = strtok(NULL, " ,<>{}");
                 }
                 
                 shared_ptr<Color> newColor = make_shared<Color>();
@@ -393,11 +393,11 @@ void Parser::parsePlane(std::ifstream* readFile)
             {
                 string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
                 
-                char* temp = strtok((char*)subLine.c_str(), " ,");
+                char* temp = strtok((char*)subLine.c_str(), " ,<>{}");
                 while (temp != NULL)
                 {
                     vals.push_back(stod(string(temp)));
-                    temp = strtok(NULL, " ,");
+                    temp = strtok(NULL, " ,<>{}");
                 }
                 
                 shared_ptr<Color> newColor = make_shared<Color>();

@@ -59,7 +59,7 @@ color_t BlinnPhongShader::getLocalColor(Vector3d* Po, Vector3d d, RTIntersectObj
             diffuse[0] += lightCol.r * max(0.0, NdotL) * Kd.x() * (1.0 - reflectRatio - refractRatio);
             diffuse[1] += lightCol.g * max(0.0, NdotL) * Kd.y() * (1.0 - reflectRatio - refractRatio);
             diffuse[2] += lightCol.b * max(0.0, NdotL) * Kd.z() * (1.0 - reflectRatio - refractRatio);
-                
+            
             Vector3d halfVector = (viewVector + lightVector).normalized();
             double specAngle = max(halfVector.dot(N), 0.0);
             double shininess = 1.0/closestObject->getHitObject()->roughness;

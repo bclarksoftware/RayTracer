@@ -10,7 +10,7 @@
 
 using namespace std;
 
-int width, height, shadeType, debug;
+int width, height, shadeType, antiAliasOn, debug;
 vector<pair<int, int>> indices;
 string sceneFileName;
 shared_ptr<Scene> scene;
@@ -24,16 +24,14 @@ void createTest()
     indices.push_back(pair<int,int>(315, 320));
     indices.push_back(pair<int,int>(220, 240));
     indices.push_back(pair<int,int>(320, 145));
-    
-//    indices.push_back(pair<int,int>(475, 90));
 }
 
 int main( int argc, const char* argv[] )
 {
     // Check if we have all the arguments.
-    if (argc < 4 || argc > 6)
+    if (argc < 4 || argc > 7)
     {
-        cout << "Incorrect input. Use: ./raytrace [width] [height] [.pov] ?[Shader Integer]" << endl;
+        cout << "Incorrect input. Use: ./raytrace [width] [height] [.pov] [Anti-Aliasing] ?[Shader Integer] ?[Debug Mode]" << endl;
         return 0;
     }
     else
@@ -42,22 +40,42 @@ int main( int argc, const char* argv[] )
         istringstream heightArg(argv[2]);
         sceneFileName = argv[3];
 
+        // Width of image argument.
         if (!(widthArg >> width))
         {
             cerr << "Invalid number " << argv[1] << '\n';
             return 0;
         }
+        
+        // Height of image argument.
         if (!(heightArg >> height))
         {
             cerr << "Invalid number " << argv[2] << '\n';
             return 0;
         }
+        
+        // Anti-Aliasing argument.
         if (argc == 5)
         {
-            istringstream shadingArg(argv[4]);
+            istringstream antiAliasArg(argv[4]);
+            if (!(antiAliasArg >> antiAliasOn) || antiAliasOn < 0 || antiAliasOn > 1)
+            {
+                cerr << "Invalid Value for Anti-Aliasing: " << argv[4] << '\n';
+                return 0;
+            }
+        }
+        else
+        {
+            antiAliasOn = 0;
+        }
+        
+        // Type of shading argument.
+        if (argc == 6)
+        {
+            istringstream shadingArg(argv[5]);
             if (!(shadingArg >> shadeType) || shadeType < 0 || shadeType > 1)
             {
-                cerr << "Invalid number " << argv[4] << '\n';
+                cerr << "Invalid number " << argv[5] << '\n';
                 return 0;
             }
         }
@@ -65,12 +83,14 @@ int main( int argc, const char* argv[] )
         {
             shadeType = 0;
         }
-        if (argc == 6)
+        
+        // Debugging argument.
+        if (argc == 7)
         {
-            istringstream debugArg(argv[5]);
-            if (!(debugArg >> debug) || shadeType < 0 || shadeType > 1)
+            istringstream debugArg(argv[6]);
+            if (!(debugArg >> debug) || debug < 0 || debug > 1)
             {
-                cerr << "Invalid number " << argv[4] << '\n';
+                cerr << "Invalid Value for Debug Mode: " << argv[6] << '\n';
                 return 0;
             }
             else
@@ -84,9 +104,9 @@ int main( int argc, const char* argv[] )
         }
     }
     
-    cout << "width: " << width << ", height: " << height << ", file: " << sceneFileName << ", shadeType: " << shadeType << "\n" << endl;
+    cout << "Width: " << width << ", Height: " << height << ", File: " << sceneFileName << ", Anti-Alias: " << antiAliasOn << ", ShadeType: " << shadeType << ", Debugging?: " << debug << "\n" << endl;
     
-    scene = make_shared<Scene>(width, height, sceneFileName, shadeType, debug, indices);
+    scene = make_shared<Scene>(width, height, sceneFileName, shadeType, antiAliasOn, debug, indices);
     
     scene->parseScene();
     

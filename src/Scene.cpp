@@ -16,7 +16,7 @@ using namespace Eigen;
 
 #define MAX_RECURSE 5
 
-Scene::Scene(int width, int height, string sceneFileName, int shadeType, int debug, vector<pair<int,int>> indices)
+Scene::Scene(int width, int height, string sceneFileName, int shadeType, int antiAliasOn, int debug, vector<pair<int,int>> indices)
 {
     pixelW = width;
     pixelH = height;
@@ -27,7 +27,11 @@ Scene::Scene(int width, int height, string sceneFileName, int shadeType, int deb
     // Start out in air.
     indexStack.push(1.0);
     
+    // Determine type of shading to use
     this->shadeType = shadeType;
+    
+    // Determine whether anti-aliasing is on
+    this->antiAliasOn = antiAliasOn;
     
     // ShadeType == 1 is Lambertian Shading.
     if (shadeType == 1)
@@ -129,13 +133,10 @@ color_t Scene::rayCastReflection(Vector3d* Po, Vector3d d)
         // Get the local shaded color of the object.
         finalColor = shader->getLocalColor(Po, d, closestObject);
         
-        if (reflectCount++ < MAX_RECURSE && reflectRatio > 0.0)
+        if ((reflectRatio > 0.0 || closestObject->getHitObject()->refraction == 1.0) && reflectCount++ < MAX_RECURSE)
         {
             Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
             Vector3d reflectRay = (d + 2.0 * N.dot(-d) * N).normalized();
-            
-            // Move the ray a little forward.
-            *newP = *newP + 0.00001 * reflectRay;
             
             if (debug)
             {
@@ -144,22 +145,38 @@ color_t Scene::rayCastReflection(Vector3d* Po, Vector3d d)
             
             if (closestObject->getHitObject()->refraction == 1.0)
             {
+                double n1 = indexStack.top();
                 double n2 = closestObject->getHitObject()->ior;
                 
-                double cosTheta = -d.dot(N) / (-d.norm() * N.norm());
-                double Ro = ((n2 - 1.0) * (n2 - 1.0)) / ((n2 + 1) * (n2 + 1));
+                double cosTheta = -d.dot(N);
+                double Ro = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));
                 
                 double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
                 
-                reflectRatio = R;
+//                reflectRay = (R * reflectRay).normalized();
+                
+                // Move the ray a little forward.
+                *newP = *newP + 0.00001 * reflectRay;
+                
+                color_t rtnClr = rayCastReflection(newP, reflectRay);
+                delete newP;
+                
+                finalColor.r += rtnClr.r * R;
+                finalColor.g += rtnClr.g * R;
+                finalColor.b += rtnClr.b * R;
             }
-            
-            color_t rtnClr = rayCastReflection(newP, reflectRay);
-            delete newP;
-            
-            finalColor.r += rtnClr.r * reflectRatio;
-            finalColor.g += rtnClr.g * reflectRatio;
-            finalColor.b += rtnClr.b * reflectRatio;
+            else
+            {
+                // Move the ray a little forward.
+                *newP = *newP + 0.00001 * reflectRay;
+                
+                color_t rtnClr = rayCastReflection(newP, reflectRay);
+                delete newP;
+                
+                finalColor.r += rtnClr.r * reflectRatio;
+                finalColor.g += rtnClr.g * reflectRatio;
+                finalColor.b += rtnClr.b * reflectRatio;
+            }
         }
     }
     else
@@ -207,13 +224,13 @@ color_t Scene::rayCastRefraction(Vector3d* Po, Vector3d d)
         
         finalColor = shader->getLocalColor(Po, d, closestObject);
         
-        if (refractCount++ < MAX_RECURSE && closestObject->getHitObject()->refraction == 1.0)
+        if (closestObject->getHitObject()->refraction == 1.0 && refractCount++ < MAX_RECURSE)
         {
             Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
             Vector3d refractRay;
             double n1, n2;
             
-            color_t rtnClr;
+            color_t rtnClr = {0.0, 0.0, 0.0, 0.0};
             
             double dDotN = -d.dot(N);
             
@@ -240,14 +257,20 @@ color_t Scene::rayCastRefraction(Vector3d* Po, Vector3d d)
             double n = n1 / n2;
             double radicand = 1.0 - (n * n) * (1.0 - (dDotN * dDotN));
             
-            double cosTheta = dDotN / (-d.norm() * N.norm());
-            double Ro = ((n2 - 1.0) * (n2 - 1.0)) / ((n2 + 1) * (n2 + 1));
-            
-            double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
-            
             if (radicand >= 0.0)
             {
                 Vector3d T = (n * (d + N * (dDotN)) - (N * sqrt( radicand ))).normalized();
+//                T = (T * (1.0 - R)).normalized();
+                
+                double cosTheta = dDotN;
+                double Ro = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));
+                
+//                if (n1 > n2)
+//                {
+//                    cosTheta = T.dot(N);
+//                }
+                
+                double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
                 
                 // Move the ray a little forward.
                 *newP = *newP + 0.00001 * T;
@@ -282,6 +305,7 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
 {
     double reflectRatio, refractRatio;
     Vector3d hitPoint, N;
+    color_t rtnClr = {0.0, 0.0, 0.0, 0.0};
     color_t finalColor = {0.0, 0.0, 0.0, 0.0};
     
     // Finds the closest intersected object.
@@ -311,13 +335,10 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
         // Get the local shaded color of the object.
         finalColor = shader->getLocalColor(Po, d, closestObject);
         
-        if (reflectCount++ < MAX_RECURSE && reflectRatio > 0.0)
+        if ((reflectRatio > 0.0 || closestObject->getHitObject()->refraction == 1.0) && reflectCount++ < MAX_RECURSE)
         {
             Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
             Vector3d reflectRay = (d + 2.0 * N.dot(-d) * N).normalized();
-            
-            // Move the ray a little forward.
-            *newP = *newP + 0.00001 * reflectRay;
             
             if (debug)
             {
@@ -326,31 +347,47 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
             
             if (closestObject->getHitObject()->refraction == 1.0)
             {
+                double n1 = indexStack.top();
                 double n2 = closestObject->getHitObject()->ior;
                 
-                double cosTheta = -d.dot(N) / (-d.norm() * N.norm());
-                double Ro = ((n2 - 1.0) * (n2 - 1.0)) / ((n2 + 1) * (n2 + 1));
+                double cosTheta = -d.dot(N);
+                double Ro = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));
                 
                 double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
                 
-                reflectRatio = R;
+//                reflectRay = (R * reflectRay).normalized();
+                
+                // Move the ray a little forward.
+                *newP = *newP + 0.00001 * reflectRay;
+                
+                rtnClr = rayCastReflection(newP, reflectRay);
+                delete newP;
+                
+                finalColor.r += rtnClr.r * R;
+                finalColor.g += rtnClr.g * R;
+                finalColor.b += rtnClr.b * R;
             }
-            
-            color_t rtnClr = rayCastReflection(newP, reflectRay);
-            delete newP;
-            
-            finalColor.r += rtnClr.r * reflectRatio;
-            finalColor.g += rtnClr.g * reflectRatio;
-            finalColor.b += rtnClr.b * reflectRatio;
+            else
+            {
+                // Move the ray a little forward.
+                *newP = *newP + 0.00001 * reflectRay;
+                
+                rtnClr = rayCastReflection(newP, reflectRay);
+                delete newP;
+                
+                finalColor.r += rtnClr.r * reflectRatio;
+                finalColor.g += rtnClr.g * reflectRatio;
+                finalColor.b += rtnClr.b * reflectRatio;
+            }
         }
         
-        if (refractCount++ < MAX_RECURSE && closestObject->getHitObject()->refraction == 1.0)
+        if (closestObject->getHitObject()->refraction == 1.0 && refractCount++ < MAX_RECURSE)
         {
             Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
             Vector3d refractRay;
             double n1, n2;
             
-            color_t rtnClr;
+            color_t rtnClr = {0.0, 0.0, 0.0, 0.0};
             
             double dDotN = -d.dot(N);
             
@@ -377,14 +414,20 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
             double n = n1 / n2;
             double radicand = 1.0 - (n * n) * (1.0 - (dDotN * dDotN));
             
-            double cosTheta = -d.dot(N) / (-d.norm() * N.norm());
-            double Ro = ((n2 - 1.0) * (n2 - 1.0)) / ((n2 + 1) * (n2 + 1));
-            
-            double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
-            
             if (radicand >= 0.0)
             {
                 Vector3d T = (n * (d + N * (dDotN)) - (N * sqrt( radicand ))).normalized();
+//                T = (T * (1.0 - R)).normalized();
+                
+                double cosTheta = dDotN;
+                double Ro = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));
+                
+//                if (n1 > n2)
+//                {
+//                    cosTheta = T.dot(N);
+//                }
+                
+                double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
                 
                 // Move the ray a little forward.
                 *newP = *newP + 0.00001 * T;
@@ -441,50 +484,152 @@ void Scene::render()
     {
         for (int j = 0; j < pixelH; j++)
         {
-            // Calculate Us Vs
-            double Us = left + (right - left) * ((i + 0.5)/pixelW);
-            double Vs = bottom + (top - bottom) * ((j + 0.5)/pixelH);
+            color_t finalColor {0.0, 0.0, 0.0, 0.0};
+            double Us, Vs;
             
-            // Calculate d
-            Vector3d d = ((Us * uVec) + (Vs * vVec) - (1.0 * wVec)).normalized();
-
-            // Reset recursion count.
-            refractCount = 0;
-            reflectCount = 0;
-
-            // Reset index stack back to first index.
-            while(indexStack.size() != 1)
+            if (antiAliasOn)
             {
-                indexStack.pop();
-            }
-            
-            if (debug)
-            {
-                for (int ndx = 0; ndx < testPixels.size(); ndx++)
+                for (int ndx = 0; ndx < 9; ndx++)
                 {
-                    if (i == testPixels[ndx].first)
+                    double randI, randJ;
+                    
+                    // Get random numbers
+                    if (ndx < 3)
                     {
-                        if (j == testPixels[ndx].second)
+                        randI = static_cast <double> (rand()) / (static_cast <double> (RAND_MAX/(0.33)));
+                        randJ = static_cast <double> (rand()) / (static_cast <double> (RAND_MAX/(0.33)));
+                    }
+                    else if (ndx < 6)
+                    {
+                        randI = 0.33 + static_cast <double> (rand()) / (static_cast <double> (RAND_MAX/(0.33)));
+                        randJ = 0.33 + static_cast <double> (rand()) / (static_cast <double> (RAND_MAX/(0.33)));
+                    }
+                    else
+                    {
+                        randI = 0.66 + static_cast <double> (rand()) / (static_cast <double> (RAND_MAX/(0.33)));
+                        randJ = 0.66 + static_cast <double> (rand()) / (static_cast <double> (RAND_MAX/(0.33)));
+                    }
+                    
+                    // Calculate Us and Vs
+                    Us = left + (right - left) * ((i + randI)/pixelW);
+                    Vs = bottom + (top - bottom) * ((j + randJ)/pixelH);
+                    
+                    // Calculate d
+                    Vector3d d = ((Us * uVec) + (Vs * vVec) - (1.0 * wVec)).normalized();
+                    
+                    // Reset recursion count.
+                    refractCount = 0;
+                    reflectCount = 0;
+                    
+                    // Reset index stack back to first index.
+                    while(indexStack.size() != 1)
+                    {
+                        indexStack.pop();
+                    }
+                    
+                    if (debug)
+                    {
+                        for (int ndx = 0; ndx < testPixels.size(); ndx++)
                         {
-                            // Testing printouts.
-                            cout << "Pixel: [" << i << ", " << j << "] " << endl;
-                            cout << "----" << endl;
-                            cout << "Iteration type: Primary" << endl;
-
-                            color_t finalColor = rayCast(Po, d);
-
-                            cout << "Final Color: <" << finalColor.r * 255.0 << ", " << finalColor.g * 255.0
-                                 << ", " << finalColor.b * 255.0 << ">" << endl;
-                            cout << "\n-----------------------------------------------------------------------"
-                                 << "------------------------------------------------\n" << endl;
+                            if (i == testPixels[ndx].first)
+                            {
+                                if (j == testPixels[ndx].second)
+                                {
+                                    color_t oneColor = rayCast(Po, d);
+                                    finalColor.r += oneColor.r;
+                                    finalColor.g += oneColor.g;
+                                    finalColor.b += oneColor.b;
+                                }
+                            }
                         }
                     }
+                    else
+                    {
+                        color_t oneColor = rayCast(Po, d);
+                        finalColor.r += oneColor.r;
+                        finalColor.g += oneColor.g;
+                        finalColor.b += oneColor.b;
+                    }
+                }
+                
+                finalColor.r = finalColor.r / 9.0;
+                finalColor.g = finalColor.g / 9.0;
+                finalColor.b = finalColor.b / 9.0;
+                
+                if (debug)
+                {
+                    for (int ndx = 0; ndx < testPixels.size(); ndx++)
+                    {
+                        if (i == testPixels[ndx].first)
+                        {
+                            if (j == testPixels[ndx].second)
+                            {
+                                // Testing printouts.
+                                cout << "Pixel: [" << i << ", " << j << "] " << endl;
+                                cout << "----" << endl;
+                                cout << "Iteration type: Primary" << endl;
+                                
+                                cout << "Final Color: <" << finalColor.r * 255.0 << ", " << finalColor.g * 255.0
+                                << ", " << finalColor.b * 255.0 << ">" << endl;
+                                cout << "\n-----------------------------------------------------------------------"
+                                << "------------------------------------------------\n" << endl;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Raycast returns the color of the pixel.
+                    image->pixel(i, j, finalColor);
                 }
             }
             else
             {
-                // Raycast returns the color of the pixel.
-                image->pixel(i, j, rayCast(Po, d));
+                // Calculate Us and Vs
+                Us = left + (right - left) * ((i + 0.5)/pixelW);
+                Vs = bottom + (top - bottom) * ((j + 0.5)/pixelH);
+                
+                // Calculate d
+                Vector3d d = ((Us * uVec) + (Vs * vVec) - (1.0 * wVec)).normalized();
+                
+                // Reset recursion count.
+                refractCount = 0;
+                reflectCount = 0;
+                
+                // Reset index stack back to first index.
+                while(indexStack.size() != 1)
+                {
+                    indexStack.pop();
+                }
+                
+                if (debug)
+                {
+                    for (int ndx = 0; ndx < testPixels.size(); ndx++)
+                    {
+                        if (i == testPixels[ndx].first)
+                        {
+                            if (j == testPixels[ndx].second)
+                            {
+                                // Testing printouts.
+                                cout << "Pixel: [" << i << ", " << j << "] " << endl;
+                                cout << "----" << endl;
+                                cout << "Iteration type: Primary" << endl;
+                                
+                                color_t finalColor = rayCast(Po, d);
+                                
+                                cout << "Final Color: <" << finalColor.r * 255.0 << ", " << finalColor.g * 255.0
+                                << ", " << finalColor.b * 255.0 << ">" << endl;
+                                cout << "\n-----------------------------------------------------------------------"
+                                << "------------------------------------------------\n" << endl;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Raycast returns the color of the pixel.
+                    image->pixel(i, j, rayCast(Po, d));
+                }
             }
         }
     }

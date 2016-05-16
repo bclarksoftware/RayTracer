@@ -21,7 +21,7 @@
 class Scene {
 public:
     Scene(int width, int height, std::string sceneFileName, int shadeType, int debug,
-          std::vector<std::pair<int,int>> indices);
+          int antiAliasOn, std::vector<std::pair<int,int>> indices);
     ~Scene();
     
     // Initialize data structures by parsing.
@@ -38,6 +38,7 @@ private:
     int pixelH;
     
     int shadeType;
+    int antiAliasOn;
 
     int reflectCount;
     int refractCount;
