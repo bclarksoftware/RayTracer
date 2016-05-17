@@ -422,11 +422,6 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
                 double cosTheta = dDotN;
                 double Ro = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));
                 
-//                if (n1 > n2)
-//                {
-//                    cosTheta = T.dot(N);
-//                }
-                
                 double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
                 
                 // Move the ray a little forward.
