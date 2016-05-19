@@ -72,6 +72,7 @@ color_t BlinnPhongShader::getLocalColor(Vector3d* Po, Vector3d d, RTIntersectObj
     
     if (debug)
     {
+        cout << "Normal: {" << N.x() << ", " << N.y() << ", " << N.z() << "}" << endl;
         cout << "Ambient: " << ambient.x() << ", " << ambient.y() << ", " << ambient.z() << endl;
         cout << "Diffuse: " << diffuse.x() << ", " << diffuse.y() << ", " << diffuse.z() << endl;
         cout << "Specular: " << specular.x() << ", " << specular.y() << ", " << specular.z() << endl;
