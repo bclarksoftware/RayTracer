@@ -70,17 +70,6 @@ color_t BlinnPhongShader::getLocalColor(Vector3d* Po, Vector3d d, RTIntersectObj
         }
     }
     
-    // Calculate ambient term across multiple light sources.
-    if (lights.size() > 0)
-    {
-//        ambient[0] = ambient.x() * (lightColorSum.x()/lights.size());
-//        ambient[1] = ambient.y() * (lightColorSum.y()/lights.size());
-//        ambient[2] = ambient.z() * (lightColorSum.z()/lights.size());
-//        ambient[0] = Ka.x();
-//        ambient[1] = Ka.y();
-//        ambient[2] = Ka.z();
-    }
-    
     if (debug)
     {
         cout << "Ambient: " << ambient.x() << ", " << ambient.y() << ", " << ambient.z() << endl;
