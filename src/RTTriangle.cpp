@@ -68,7 +68,7 @@ void RTTriangle::calcNormal()
 
 Vector3d RTTriangle::getNormal(Vector3d hitPoint)
 {
-    Vector4d normalWorld = this->getCTM().inverse() * Vector4d(this->normal.x(), this->normal.y(), this->normal.z(), 0.0);
+    Vector4d normalWorld = this->getCTM().inverse().transpose() * Vector4d(this->normal.x(), this->normal.y(), this->normal.z(), 0.0);
 
     return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }
