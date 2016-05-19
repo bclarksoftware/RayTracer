@@ -235,13 +235,15 @@ void Parser::parseSphere(ifstream* readFile)
             }
             else if (value.compare("pigment") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
                 
-                char* temp = strtok((char*)subLine.c_str(), " ,<>{}");
+                char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
                 {
                     vals.push_back(stod(string(temp)));
-                    temp = strtok(NULL, " ,<>{}");
+                    temp = strtok(NULL, " ,");
                 }
                 
                 shared_ptr<Color> newColor = make_shared<Color>();
@@ -306,7 +308,9 @@ void Parser::parseSphere(ifstream* readFile)
             }
             else if (value.compare("scale") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -319,7 +323,9 @@ void Parser::parseSphere(ifstream* readFile)
             }
             else if (value.compare("rotate") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -332,7 +338,9 @@ void Parser::parseSphere(ifstream* readFile)
             }
             else if (value.compare("translate") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -391,13 +399,15 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("pigment") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
                 
-                char* temp = strtok((char*)subLine.c_str(), " ,<>{}");
+                char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
                 {
                     vals.push_back(stod(string(temp)));
-                    temp = strtok(NULL, " ,<>{}");
+                    temp = strtok(NULL, " ,");
                 }
                 
                 shared_ptr<Color> newColor = make_shared<Color>();
@@ -462,7 +472,9 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("scale") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -475,7 +487,9 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("rotate") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -488,7 +502,9 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("translate") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -554,13 +570,15 @@ void Parser::parseTriangle(std::ifstream* readFile)
             }
             else if (value.compare("pigment") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
 
-                char* temp = strtok((char*)subLine.c_str(), " ,<>}");
+                char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
                 {
                     vals.push_back(stod(string(temp)));
-                    temp = strtok(NULL, " ,<>}");
+                    temp = strtok(NULL, " ,");
                 }
 
                 shared_ptr<Color> newColor = make_shared<Color>();
@@ -625,7 +643,9 @@ void Parser::parseTriangle(std::ifstream* readFile)
             }
             else if (value.compare("scale") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -638,7 +658,9 @@ void Parser::parseTriangle(std::ifstream* readFile)
             }
             else if (value.compare("rotate") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -651,7 +673,9 @@ void Parser::parseTriangle(std::ifstream* readFile)
             }
             else if (value.compare("translate") == 0)
             {
-                string subLine = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                size_t pos = line.find_first_of("<") + 1;
+                size_t length = line.find_first_of(">") - pos;
+                string subLine = line.substr(pos, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)

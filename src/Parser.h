@@ -2,7 +2,7 @@
 #define __PARSER_H__
 
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <vector>
 #include <fstream>
 
