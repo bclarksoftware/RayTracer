@@ -37,3 +37,7 @@ Looking for my own pov file?
      the resource directory.
    - Other test files and images exist within the resource 
      directory as well.
+
+- TIME (Before BVH):
+- Runtime on recurses.pov = 1:33
+- Runtime on balls2.pov = 41:00
