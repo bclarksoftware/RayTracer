@@ -8,15 +8,16 @@ int RTObject::idTracker = 1;
 
 RTObject::RTObject()
 {
-    objectId = RTObject::idTracker++;
-    color = make_shared<Color>();
+    this->objectId = RTObject::idTracker++;
+    this->color = make_shared<Color>();
     
-    ambient = 0.0;
-    diffuse = 0.0;
-    specular = 0.0;
-    roughness = 0.0;
-    reflection = 0.0;
-    refraction = 0.0;
+    this->ambient = 0.0;
+    this->diffuse = 0.0;
+    this->specular = 0.0;
+    this->roughness = 0.0;
+    this->reflection = 0.0;
+    this->refraction = 0.0;
+    this->ior = 0.0;
 
     this->currTransMatrix = Matrix4d::Identity();
 }

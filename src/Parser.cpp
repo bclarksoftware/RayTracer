@@ -69,6 +69,7 @@ void Parser::parseCamera(ifstream* readFile)
     vector<double> vals;
     string line;
     bool keepParsing = true;
+    size_t start, length;
     
     while(keepParsing)
     {
@@ -89,20 +90,24 @@ void Parser::parseCamera(ifstream* readFile)
             
             if (value.compare("location") == 0)
             {
-                line = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                line = line.substr(start, length);
 
                 char* temp = strtok((char*)line.c_str(), " ,>");
                 while (temp != NULL)
                 {
                     vals.push_back(stod(string(temp)));
-                    temp = strtok(NULL, " ,>\r\n");
+                    temp = strtok(NULL, " ,");
                 }
                 
                 camera->setLocation(new Vector3d(vals[0], vals[1], vals[2]));
             }
             else if (value.compare("up") == 0)
             {
-                line = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                line = line.substr(start, length);
                 
                 char* temp = strtok((char*)line.c_str(), " ,");
                 while (temp != NULL)
@@ -115,7 +120,9 @@ void Parser::parseCamera(ifstream* readFile)
             }
             else if (value.compare("right") == 0)
             {
-                line = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                line = line.substr(start, length);
                 
                 char* temp = strtok((char*)line.c_str(), " ,");
                 while (temp != NULL)
@@ -128,7 +135,9 @@ void Parser::parseCamera(ifstream* readFile)
             }
             else if (value.compare("look_at") == 0)
             {
-                line = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                line = line.substr(start, length);
                 
                 char* temp = strtok((char*)line.c_str(), " ,");
                 while (temp != NULL)
@@ -151,29 +160,31 @@ void Parser::parseLight(std::ifstream* readFile)
     shared_ptr<Light> newLight = make_shared<Light>();
     
     getline(*readFile, line);
-    line = line.substr(line.find_first_of("{") + 1, line.find_last_of("}") - 1);
     
-    string locationString = line.substr(line.find_first_of("<") + 1, line.find("color") - 1);
-
-    char* temp = strtok((char*)locationString.c_str(), " ,<>");
+    size_t start = line.find_first_of("<") + 1;
+    size_t length = line.find_first_of(">") - start;
+    string locationString = line.substr(start, length);
+    
+    char* temp = strtok((char*)locationString.c_str(), " ,");
     while (temp != NULL)
     {
         vals.push_back(stod(string(temp)));
-        temp = strtok(NULL, " ,<>");
+        temp = strtok(NULL, " ,");
     }
     
     newLight->setLocation(vals[0], vals[1], vals[2]);
     
     vals.clear();
     
-    string colorString = line.substr(line.find("color"), line.length());
-    string colorValue = colorString.substr(colorString.find_first_of("<") + 1, colorString.find_last_of(">"));
+    start = line.find_last_of("<") + 1;
+    length = line.find_last_of(">") - start;
+    string colorValue = line.substr(start, length);
     
-    temp = strtok((char*)colorValue.c_str(), " ,<>}");
+    temp = strtok((char*)colorValue.c_str(), " ,");
     while (temp != NULL)
     {
         vals.push_back(stod(string(temp)));
-        temp = strtok(NULL, " ,<>\r\n}");
+        temp = strtok(NULL, " ,}");
     }
     
     shared_ptr<Color> newColor = make_shared<Color>();
@@ -199,6 +210,7 @@ void Parser::parseSphere(ifstream* readFile)
     vector<double> vals;
     string line;
     bool keepParsing = true;
+    size_t start, length;
     
     shared_ptr<RTSphere> newSphere = make_shared<RTSphere>();
     
@@ -221,9 +233,10 @@ void Parser::parseSphere(ifstream* readFile)
             
             if (value.compare("sphere") == 0)
             {
-                line = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                start = line.find_first_of("<") + 1;
+                line = line.substr(start, line.size());
                 
-                char* temp = strtok((char*)line.c_str(), " ,<>");
+                char* temp = strtok((char*)line.c_str(), " ,");
                 while (temp != NULL)
                 {
                     vals.push_back(stod(string(temp)));
@@ -235,9 +248,9 @@ void Parser::parseSphere(ifstream* readFile)
             }
             else if (value.compare("pigment") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
                 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -262,7 +275,9 @@ void Parser::parseSphere(ifstream* readFile)
             }
             else if (value.compare("finish") == 0)
             {
-                string subLine = line.substr(line.find_first_of("{") + 1, line.find_last_of("}") - 1);
+                start = line.find_first_of("{") + 1;
+                length = line.find_last_of("}") - start;
+                string subLine = line.substr(start, length);
                 
                 char* temp = strtok((char*)subLine.c_str(), " ");
                 while (temp != NULL)
@@ -308,9 +323,9 @@ void Parser::parseSphere(ifstream* readFile)
             }
             else if (value.compare("scale") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -323,9 +338,9 @@ void Parser::parseSphere(ifstream* readFile)
             }
             else if (value.compare("rotate") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -338,9 +353,9 @@ void Parser::parseSphere(ifstream* readFile)
             }
             else if (value.compare("translate") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -363,6 +378,7 @@ void Parser::parsePlane(std::ifstream* readFile)
     vector<double> vals;
     string line;
     bool keepParsing = true;
+    size_t start, length;
     
     shared_ptr<RTPlane> newPlane = make_shared<RTPlane>();
     
@@ -385,13 +401,14 @@ void Parser::parsePlane(std::ifstream* readFile)
             
             if (value.compare("plane") == 0)
             {
-                line = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                start = line.find_first_of("<") + 1;
+                line = line.substr(start, line.size());
                 
-                char* temp = strtok((char*)line.c_str(), " ,<>");
+                char* temp = strtok((char*)line.c_str(), " ,>");
                 while (temp != NULL)
                 {
                     vals.push_back(stod(string(temp)));
-                    temp = strtok(NULL, " ,");
+                    temp = strtok(NULL, " ,>");
                 }
                 
                 newPlane->setNormal(vals[0], vals[1], vals[2]);
@@ -399,9 +416,9 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("pigment") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
                 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -426,7 +443,9 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("finish") == 0)
             {
-                string subLine = line.substr(line.find_first_of("{") + 1, line.find_last_of("}") - 1);
+                start = line.find_first_of("{");
+                length = line.find_last_of("}") - start;
+                string subLine = line.substr(start, length);
                 
                 char* temp = strtok((char*)subLine.c_str(), " ");
                 while (temp != NULL)
@@ -472,9 +491,9 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("scale") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -487,9 +506,9 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("rotate") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -502,9 +521,9 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("translate") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -527,6 +546,7 @@ void Parser::parseTriangle(std::ifstream* readFile)
     vector<double> vals;
     string line;
     bool keepParsing = true;
+    size_t start, length;
 
     shared_ptr<RTTriangle> newTriangle = make_shared<RTTriangle>();
 
@@ -552,16 +572,24 @@ void Parser::parseTriangle(std::ifstream* readFile)
                 // Grab the three vertices.
                 for (int ndx = 0; ndx < 3; ndx++)
                 {
-                    getline(*readFile, line);
+                    if (line.find_first_of("<") == string::npos)
+                    {
+                        getline(*readFile, line);
+                    }
+                    
+                    start = line.find_first_of("<") + 1;
+                    length = line.find_first_of(">") - start;
 
-                    line = line.substr(line.find_first_of("<") + 1, line.find_last_of(">") - 1);
+                    string vertex = line.substr(start, length);
 
-                    char* temp = strtok((char*)line.c_str(), " ,<>");
+                    char* temp = strtok((char*)vertex.c_str(), " ,");
                     while (temp != NULL)
                     {
                         vals.push_back(stod(string(temp)));
-                        temp = strtok(NULL, " ,<>");
+                        temp = strtok(NULL, " ,");
                     }
+                    
+                    line = line.substr(start + length + 1, line.size());
                 }
 
                 newTriangle->setVertices(Vector3d(vals[0], vals[1], vals[2]),
@@ -570,9 +598,9 @@ void Parser::parseTriangle(std::ifstream* readFile)
             }
             else if (value.compare("pigment") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -597,7 +625,9 @@ void Parser::parseTriangle(std::ifstream* readFile)
             }
             else if (value.compare("finish") == 0)
             {
-                string subLine = line.substr(line.find_first_of("{") + 1, line.find_last_of("}") - 1);
+                start = line.find_first_of("{") + 1;
+                length = line.find_last_of("}") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ");
                 while (temp != NULL)
@@ -643,9 +673,9 @@ void Parser::parseTriangle(std::ifstream* readFile)
             }
             else if (value.compare("scale") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -658,9 +688,9 @@ void Parser::parseTriangle(std::ifstream* readFile)
             }
             else if (value.compare("rotate") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
@@ -673,9 +703,9 @@ void Parser::parseTriangle(std::ifstream* readFile)
             }
             else if (value.compare("translate") == 0)
             {
-                size_t pos = line.find_first_of("<") + 1;
-                size_t length = line.find_first_of(">") - pos;
-                string subLine = line.substr(pos, length);
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
 
                 char* temp = strtok((char*)subLine.c_str(), " ,");
                 while (temp != NULL)
