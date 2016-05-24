@@ -35,6 +35,7 @@ public:
     bool isSphere();
     bool isPlane();
     bool isTriangle();
+    bool isBox();
 
     int getId();
 

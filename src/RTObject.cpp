@@ -57,6 +57,11 @@ bool RTObject::isTriangle()
     return (this->type == 3);
 }
 
+bool RTObject::isBox()
+{
+    return (this->type == 4);
+}
+
 int RTObject::getId()
 {
     return this->objectId;

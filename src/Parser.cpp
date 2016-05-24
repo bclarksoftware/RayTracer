@@ -58,6 +58,11 @@ void Parser::parseScene()
             readFile.seekg(prevLine);
             parseTriangle(&readFile);
         }
+        else if (value.compare("box") == 0)
+        {
+            readFile.seekg(prevLine);
+            parseBox(&readFile);
+        }
         
         prevLine = readFile.tellg();
     }
@@ -720,6 +725,188 @@ void Parser::parseTriangle(std::ifstream* readFile)
     }
 
     this->objects.push_back(newTriangle);
+}
+
+void Parser::parseBox(std::ifstream* readFile)
+{
+    int beginCurly, endCurly;
+    vector<double> vals;
+    string line;
+    bool keepParsing = true;
+    size_t start, length;
+    
+    shared_ptr<RTBox> newBox = make_shared<RTBox>();
+    
+    while(keepParsing)
+    {
+        string value;
+        
+        getline(*readFile, line);
+        
+        if ((beginCurly = line.find_first_of("{")) == string::npos && (endCurly = line.find_first_of("}")) != string::npos)
+        {
+            line = line.substr(0, endCurly);
+            keepParsing = false;
+        }
+        else
+        {
+            istringstream iss(line);
+            iss >> value;
+            vals.clear();
+            
+            if (value.compare("box") == 0)
+            {
+                // Grab the three vertices.
+                for (int ndx = 0; ndx < 2; ndx++)
+                {
+                    if (line.find_first_of("<") == string::npos)
+                    {
+                        getline(*readFile, line);
+                    }
+                    
+                    start = line.find_first_of("<") + 1;
+                    length = line.find_first_of(">") - start;
+                    
+                    string vertex = line.substr(start, length);
+                    
+                    char* temp = strtok((char*)vertex.c_str(), " ,");
+                    while (temp != NULL)
+                    {
+                        vals.push_back(stod(string(temp)));
+                        temp = strtok(NULL, " ,");
+                    }
+                    
+                    line = line.substr(start + length + 1, line.size());
+                }
+                
+                newBox->setCorner1(Vector3d(vals[0], vals[1], vals[2]));
+                newBox->setCorner2(Vector3d(vals[3], vals[4], vals[5]));
+                newBox->sortCorners();
+            }
+            else if (value.compare("pigment") == 0)
+            {
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
+                
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+                
+                shared_ptr<Color> newColor = make_shared<Color>();
+                
+                // if we find rgbf, get 4 values.
+                if (line.find("rgbf") != string::npos)
+                {
+                    newColor->setRGBA(vals[0], vals[1], vals[2], vals[3]);
+                    newBox->setColor(newColor);
+                }
+                else
+                {
+                    newColor->setRGB(vals[0], vals[1], vals[2]);
+                    newBox->setColor(newColor);
+                }
+            }
+            else if (value.compare("finish") == 0)
+            {
+                start = line.find_first_of("{") + 1;
+                length = line.find_last_of("}") - start;
+                string subLine = line.substr(start, length);
+                
+                char* temp = strtok((char*)subLine.c_str(), " ");
+                while (temp != NULL)
+                {
+                    if (string(temp) == "ambient")
+                    {
+                        temp = strtok(NULL, " ");
+                        newBox->ambient = stod(string(temp));
+                    }
+                    else if (string(temp) == "diffuse")
+                    {
+                        temp = strtok(NULL, " ");
+                        newBox->diffuse = stod(string(temp));
+                    }
+                    else if (string(temp) == "specular")
+                    {
+                        temp = strtok(NULL, " ");
+                        newBox->specular = stod(string(temp));
+                    }
+                    else if (string(temp) == "roughness")
+                    {
+                        temp = strtok(NULL, " ");
+                        newBox->roughness = stod(string(temp));
+                    }
+                    else if (string(temp) == "reflection")
+                    {
+                        temp = strtok(NULL, " ");
+                        newBox->reflection = stod(string(temp));
+                    }
+                    else if (string(temp) == "refraction")
+                    {
+                        temp = strtok(NULL, " ");
+                        newBox->refraction = stod(string(temp));
+                    }
+                    else if (string(temp) == "ior")
+                    {
+                        temp = strtok(NULL, " ");
+                        newBox->ior = stod(string(temp));
+                    }
+                    
+                    temp = strtok(NULL, " ");
+                }
+            }
+            else if (value.compare("scale") == 0)
+            {
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
+                
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+                
+                newBox->applyScale(vals[0], vals[1], vals[2]);
+            }
+            else if (value.compare("rotate") == 0)
+            {
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
+                
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+                
+                newBox->applyRotation(vals[0], vals[1], vals[2]);
+            }
+            else if (value.compare("translate") == 0)
+            {
+                start = line.find_first_of("<") + 1;
+                length = line.find_first_of(">") - start;
+                string subLine = line.substr(start, length);
+                
+                char* temp = strtok((char*)subLine.c_str(), " ,");
+                while (temp != NULL)
+                {
+                    vals.push_back(stod(string(temp)));
+                    temp = strtok(NULL, " ,");
+                }
+                
+                newBox->applyTranslation(vals[0], vals[1], vals[2]);
+            }
+        }
+    }
+    
+    this->objects.push_back(newBox);
 }
 
 std::shared_ptr<Camera> Parser::getCamera()
