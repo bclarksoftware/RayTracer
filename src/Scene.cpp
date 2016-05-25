@@ -327,16 +327,19 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
     {
         cout << "Ray: {" << Po->x() << ", " << Po->y() << ", " << Po->z() << "} -> {"
         << d.x() << ", " << d.y() << ", " << d.z() << "}" << endl;
-        
-        Vector4d PoWorld = closestObject->getHitObject()->getCTM().inverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
-        Vector4d dWorld = closestObject->getHitObject()->getCTM().inverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
-            
-        cout << "Transformed Ray: {" << PoWorld.x() << ", " << PoWorld.y() << ", " << PoWorld.z() << "} -> {"
-            << dWorld.x() << ", " << dWorld.y() << ", " << dWorld.z() << "}" << endl;
     }
     
     if (closestObject != NULL)
     {
+        if (debug)
+        {
+            Vector4d PoWorld = closestObject->getHitObject()->getCTM().inverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
+            Vector4d dWorld = closestObject->getHitObject()->getCTM().inverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
+            
+            cout << "Transformed Ray: {" << PoWorld.x() << ", " << PoWorld.y() << ", " << PoWorld.z() << "} -> {"
+            << dWorld.x() << ", " << dWorld.y() << ", " << dWorld.z() << "}" << endl;
+        }
+        
         reflectRatio = closestObject->getHitObject()->reflection;
         refractRatio = closestObject->getHitObject()->getColor()->getRGBA().w();
         
