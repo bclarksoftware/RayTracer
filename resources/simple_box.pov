@@ -9,12 +9,14 @@ camera {
 
 light_source {<-100, 100, 100> color rgb <1.5, 1.5, 1.5>}
 
-box { <-0.5, -0.6, -0.7>, <0.8, 0.9, 1.0>
+box { <-0.5, -0.5, -0.5>, <0.5, 0.5, 0.5>
   pigment { color rgbf <1.0, 0.2, 1.0, 0.6>}
   finish {ambient 0.2 diffuse 0.8 reflection 0.2 refraction 1.0 ior 1.9}
   //finish {ambient 0.2 diffuse 0.8}
+  //rotate <-45, 0, 0>
   rotate <0, -45, 0>
-  translate <3, 0, -5>
+  rotate <0, 0, -45>
+  //translate <3, 0, -5>
 }
 
 plane {<0, 1, 0>, -4
