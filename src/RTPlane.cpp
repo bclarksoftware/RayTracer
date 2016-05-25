@@ -79,10 +79,10 @@ shared_ptr<RTIntersectObject> RTPlane::getIntersection(Vector3d Po, Vector3d d)
     return hitData;
 }
 
-//void RTPlane::updateBoundingBox()
-//{
-//    // No bounding box for now.
-//}
+void RTPlane::updateBoundingBox()
+{
+    // No bounding box for now.
+}
 
 string RTPlane::toString()
 {

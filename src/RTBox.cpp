@@ -27,6 +27,7 @@ RTBox::RTBox(double x1, double y1, double z1, double x2, double y2, double z2)
 }
 
 RTBox::RTBox(Vector3d corner1, Vector3d corner2)
+: RTObject()
 {
     this->type = 4;
     
@@ -208,11 +209,11 @@ Eigen::Vector3d RTBox::getNormal(Vector3d hitPoint)
     return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }
 
-//void RTBox::updateBoundingBox()
-//{
-////    this->boundingBox->corner1 = this->corner1;
-////    this->boundingBox->corner2 = this->corner2;
-//}
+void RTBox::updateBoundingBox()
+{
+    this->boundingBox->corner1 = this->corner1;
+    this->boundingBox->corner2 = this->corner2;
+}
 
 Vector3d RTBox::getCenter()
 {

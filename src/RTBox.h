@@ -33,7 +33,7 @@ public:
     virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
                                                                Eigen::Vector3d d);
     virtual Eigen::Vector3d getNormal(Eigen::Vector3d hitPoint);
-//    virtual void updateBoundingBox();
+    virtual void updateBoundingBox();
     virtual std::string toString();
     
 private:

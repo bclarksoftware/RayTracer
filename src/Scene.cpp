@@ -74,6 +74,7 @@ void Scene::parseScene()
     shader->addObjects(objects);
     
     bvhTree = make_shared<BVHTree>(objects);
+    root = bvhTree->getRoot();
 }
 
 // Returns the closest intersected object.

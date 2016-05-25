@@ -113,11 +113,11 @@ Vector3d RTSphere::getNormal(Eigen::Vector3d hitPoint)
     return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }
 
-//void RTSphere::updateBoundingBox()
-//{
-////    this->boundingBox->setCorner1(this->center - Vector3d(radius, radius, radius));
-////    this->boundingBox->setCorner1(this->center + Vector3d(radius, radius, radius));
-//}
+void RTSphere::updateBoundingBox()
+{
+    this->boundingBox->corner1 = this->center - Vector3d(radius, radius, radius);
+    this->boundingBox->corner2 = this->center + Vector3d(radius, radius, radius);
+}
 
 string RTSphere::toString()
 {

@@ -47,7 +47,7 @@ public:
     void applyTranslation(double x, double y, double z);
 
     Eigen::Matrix4d getCTM();
-//    std::shared_ptr<BoundingBox> getBoundingBox();
+    std::shared_ptr<BoundingBox> getBoundingBox();
 
 protected:
     int type;
@@ -56,7 +56,7 @@ protected:
 
     Eigen::Matrix4d currTransMatrix;
     
-//    std::shared_ptr<BoundingBox> boundingBox;
+    std::shared_ptr<BoundingBox> boundingBox;
 
 private:
     std::shared_ptr<Color> color;
