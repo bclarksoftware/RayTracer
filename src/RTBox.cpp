@@ -94,7 +94,7 @@ shared_ptr<RTIntersectObject> RTBox::getIntersection(Vector3d Po, Vector3d d)
     
     for (int ndx = 0; ndx < 3; ndx++)
     {
-        if (d[ndx] == 0.0)
+        /*if (d[ndx] == 0.0)
         {
             if (ndx == 0)
             {
@@ -125,7 +125,7 @@ shared_ptr<RTIntersectObject> RTBox::getIntersection(Vector3d Po, Vector3d d)
             }
         }
         else
-        {
+        {*/
             double t1 = (corner1[ndx] - Po[ndx]) / d[ndx];
             double t2 = (corner2[ndx] - Po[ndx]) / d[ndx];
             
@@ -146,12 +146,20 @@ shared_ptr<RTIntersectObject> RTBox::getIntersection(Vector3d Po, Vector3d d)
                 tgMax = t2;
             }
         }
-    }
+    //}
     
     if (tgMin < tgMax && tgMax >= 0)
     {
+        if (tgMin < 0.0)
+        {
+            this->hitData->setTValue(tgMax);
+        }
+        else
+        {
+            this->hitData->setTValue(tgMin);
+        }
+        
         this->hitData->setIntersected(true);
-        this->hitData->setTValue(tgMin);
         this->hitData->setColor(this->getColor());
         this->hitData->setHitObject(this);
     }
