@@ -9,6 +9,8 @@ BVHTree::BVHTree(vector<shared_ptr<RTObject>> objects)
     
     for (int ndx = 0; ndx < objects.size(); ndx++)
     {
+        objects[ndx]->updateBoundingBox();
+        transformBoundingBox(objects[ndx]->getBoundingBox(), objects[ndx]->getCTM());
         nodes.push_back(make_shared<BVHNode>(objects[ndx]));
     }
     
@@ -18,6 +20,11 @@ BVHTree::BVHTree(vector<shared_ptr<RTObject>> objects)
 BVHTree::~BVHTree()
 {
     
+}
+
+void BVHTree::transformBoundingBox(std::shared_ptr<BoundingBox> boundingBox, Eigen::Matrix4d ctm)
+{
+    // TODO
 }
 
 shared_ptr<BVHNode> BVHTree::buildBVH(vector<shared_ptr<BVHNode>> nodes, int axis)
@@ -55,6 +62,56 @@ shared_ptr<BVHNode> BVHTree::buildBVH(vector<shared_ptr<BVHNode>> nodes, int axi
     }
     
     return newNode;
+}
+
+RTIntersectObject* BVHTree::hit(std::shared_ptr<BVHNode> node, Eigen::Vector3d* Po, Eigen::Vector3d d)
+{
+    if (node->object->getIntersection(*Po, d)->hasIntersected())
+    {
+        RTIntersectObject* left = NULL;
+        RTIntersectObject* right = NULL;
+        
+        // Check for child.
+        if (node->left == NULL && node->right == NULL)
+        {
+            Vector4d PoWorld = node->object->getCTM().inverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
+            Vector4d dWorld = node->object->getCTM().inverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
+            return node->object->getIntersection(Vector3d(PoWorld.x(), PoWorld.y(), PoWorld.z()),
+                                                 Vector3d(dWorld.x(), dWorld.y(), dWorld.z())).get();
+        }
+        
+        if (node->left != NULL) // Try hit left
+        {
+            left = hit(node->left, Po, d);
+        }
+        if (node->right != NULL) // Try hit right
+        {
+            right = hit(node->right, Po, d);
+        }
+        
+        if (left != NULL && right != NULL &&
+            left->hasIntersected() && right->hasIntersected())
+        {
+            if (left->getTValue() < right->getTValue())
+            {
+                return left;
+            }
+            else
+            {
+                return right;
+            }
+        }
+        else if (left != NULL && left->hasIntersected())
+        {
+            return left;
+        }
+        else if (right != NULL && right->hasIntersected())
+        {
+            return right;
+        }
+    }
+    
+    return NULL;
 }
 
 shared_ptr<RTBox> BVHTree::createBox(shared_ptr<BoundingBox> bounding)

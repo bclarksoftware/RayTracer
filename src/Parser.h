@@ -27,6 +27,7 @@ public:
     std::shared_ptr<Camera> getCamera();
     std::vector<std::shared_ptr<Light>> getLights();
     std::vector<std::shared_ptr<RTObject>> getObjects();
+    std::vector<std::shared_ptr<RTObject>> getPlanes();
 
 private:
     std::string sceneFileName;
@@ -35,6 +36,7 @@ private:
     
     std::vector<std::shared_ptr<Light>> lights;
     std::vector<std::shared_ptr<RTObject>> objects;
+    std::vector<std::shared_ptr<RTObject>> planes;
     
     void parseCamera(std::ifstream* readFile);
     void parseLight(std::ifstream* readFile);

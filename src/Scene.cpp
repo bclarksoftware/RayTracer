@@ -69,9 +69,11 @@ void Scene::parseScene()
     camera = parser->getCamera();
     lights = parser->getLights();
     objects = parser->getObjects();
+    planes = parser->getPlanes();
     
     shader->addLights(lights);
     shader->addObjects(objects);
+    shader->addObjects(planes);
     
     bvhTree = make_shared<BVHTree>(objects);
     root = bvhTree->getRoot();
@@ -80,15 +82,15 @@ void Scene::parseScene()
 // Returns the closest intersected object.
 RTIntersectObject* Scene::getClosestIntersectedObject(Vector3d* Po, Vector3d d)
 {
-    RTIntersectObject* closestObject = NULL;
+    RTIntersectObject* closestObject = bvhTree->hit(root, Po, d);
 
-    for (int ndx = 0; ndx < objects.size(); ndx++)
+    for (int ndx = 0; ndx < planes.size(); ndx++)
     {
-        Vector4d PoWorld = objects[ndx]->getCTM().inverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
-        Vector4d dWorld = objects[ndx]->getCTM().inverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
+        Vector4d PoWorld = planes[ndx]->getCTM().inverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
+        Vector4d dWorld = planes[ndx]->getCTM().inverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
 
         shared_ptr<RTIntersectObject> intersectObj =
-                objects[ndx]->getIntersection(Vector3d(PoWorld.x(), PoWorld.y(), PoWorld.z()),
+                planes[ndx]->getIntersection(Vector3d(PoWorld.x(), PoWorld.y(), PoWorld.z()),
                                               Vector3d(dWorld.x(), dWorld.y(), dWorld.z()));
         double currentTValue = intersectObj->getTValue();
 
@@ -98,7 +100,7 @@ RTIntersectObject* Scene::getClosestIntersectedObject(Vector3d* Po, Vector3d d)
             closestObject = intersectObj.get();
         }
     }
-
+    
     return closestObject;
 }
 

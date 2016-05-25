@@ -4,12 +4,8 @@
  * Class:  CPE 473              *
  *===============================
 
-COMPLETENESS OF PROGRAM 3:
- - Triangles Complete
- - Reflections Complete
- - Refractions Complete
- 
- - NOTE: Multiple light sources are not working currently
+COMPLETENESS OF PROGRAM 4b:
+ - Need to transform bounding boxes and use BVH to compute shadows.
 
 HOW TO COMPILE:
    1. Set 'EIGEN3_INCLUDE_DIR' environment variable to point 

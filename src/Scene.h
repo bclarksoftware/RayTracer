@@ -55,6 +55,7 @@ private:
     
     std::vector<std::shared_ptr<Light>> lights;
     std::vector<std::shared_ptr<RTObject>> objects;
+    std::vector<std::shared_ptr<RTObject>> planes;
     
     std::shared_ptr<BVHNode> root;
     std::shared_ptr<BVHTree> bvhTree;

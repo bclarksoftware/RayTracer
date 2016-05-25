@@ -24,7 +24,7 @@ public:
     virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
                                                 Eigen::Vector3d d) = 0;
     virtual Eigen::Vector3d getNormal(Eigen::Vector3d hitPoint) = 0;
-//    virtual void updateBoundingBox() = 0;
+    virtual void updateBoundingBox() = 0;
     virtual std::string toString() = 0;
     
     double ambient;

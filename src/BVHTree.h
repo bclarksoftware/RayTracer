@@ -12,12 +12,16 @@
 #include "RTObject.h"
 #include "RTBox.h"
 
+#include "RTIntersectObject.h"
+
 class BVHTree {
 public:
     BVHTree(std::vector<std::shared_ptr<RTObject>> objects);
     ~BVHTree();
     
     std::shared_ptr<BVHNode> getRoot();
+    
+    RTIntersectObject* hit(std::shared_ptr<BVHNode> node, Eigen::Vector3d* Po, Eigen::Vector3d d);
     
 private:
     std::shared_ptr<BVHNode> root;
@@ -29,6 +33,8 @@ private:
     std::shared_ptr<RTBox> createBox(std::shared_ptr<BoundingBox> bounding);
     
     std::vector<std::shared_ptr<BVHNode>> sortNodes(std::vector<std::shared_ptr<BVHNode>> nodes, int axis);
+    
+    void transformBoundingBox(std::shared_ptr<BoundingBox> boundingBox, Eigen::Matrix4d ctm);
     
 };
 

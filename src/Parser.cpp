@@ -542,7 +542,7 @@ void Parser::parsePlane(std::ifstream* readFile)
         }
     }
     
-    this->objects.push_back(newPlane);
+    this->planes.push_back(newPlane);
 }
 
 void Parser::parseTriangle(std::ifstream* readFile)
@@ -922,4 +922,9 @@ std::vector<std::shared_ptr<Light>> Parser::getLights()
 std::vector<std::shared_ptr<RTObject>> Parser::getObjects()
 {
     return objects;
+}
+
+std::vector<std::shared_ptr<RTObject>> Parser::getPlanes()
+{
+    return planes;
 }
