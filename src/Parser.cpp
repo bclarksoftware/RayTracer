@@ -448,7 +448,7 @@ void Parser::parsePlane(std::ifstream* readFile)
             }
             else if (value.compare("finish") == 0)
             {
-                start = line.find_first_of("{");
+                start = line.find_first_of("{") + 1;
                 length = line.find_last_of("}") - start;
                 string subLine = line.substr(start, length);
                 
