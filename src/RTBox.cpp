@@ -208,6 +208,17 @@ Eigen::Vector3d RTBox::getNormal(Vector3d hitPoint)
     return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }
 
+//void RTBox::updateBoundingBox()
+//{
+////    this->boundingBox->corner1 = this->corner1;
+////    this->boundingBox->corner2 = this->corner2;
+//}
+
+Vector3d RTBox::getCenter()
+{
+    return (this->corner1 + this->corner2)/2.0;
+}
+
 string RTBox::toString()
 {
     string str0 = "Box:\n";

@@ -9,6 +9,8 @@
 #define EIGEN_DONT_ALIGN_STATICALLY
 #include <Eigen/Dense>
 
+#include "BoundingBox.h"
+
 class RTObject {
 public:
     RTObject();
@@ -22,6 +24,7 @@ public:
     virtual std::shared_ptr<RTIntersectObject> getIntersection(Eigen::Vector3d Po,
                                                 Eigen::Vector3d d) = 0;
     virtual Eigen::Vector3d getNormal(Eigen::Vector3d hitPoint) = 0;
+//    virtual void updateBoundingBox() = 0;
     virtual std::string toString() = 0;
     
     double ambient;
@@ -44,6 +47,7 @@ public:
     void applyTranslation(double x, double y, double z);
 
     Eigen::Matrix4d getCTM();
+//    std::shared_ptr<BoundingBox> getBoundingBox();
 
 protected:
     int type;
@@ -51,6 +55,8 @@ protected:
     int objectId;
 
     Eigen::Matrix4d currTransMatrix;
+    
+//    std::shared_ptr<BoundingBox> boundingBox;
 
 private:
     std::shared_ptr<Color> color;

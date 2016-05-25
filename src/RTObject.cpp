@@ -20,6 +20,7 @@ RTObject::RTObject()
     this->ior = 0.0;
 
     this->currTransMatrix = Matrix4d::Identity();
+//    this->boundingBox = make_shared<BoundingBox>();
 }
 
 RTObject::~RTObject()
@@ -128,3 +129,8 @@ Matrix4d RTObject::getCTM()
 {
     return this->currTransMatrix;
 }
+
+//shared_ptr<BoundingBox> RTObject::getBoundingBox()
+//{
+//    return this->boundingBox;
+//}

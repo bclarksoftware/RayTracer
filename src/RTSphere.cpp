@@ -1,4 +1,5 @@
 #include "RTSphere.h"
+//#include "RTBox.h"
 
 using namespace std;
 using namespace Eigen;
@@ -111,6 +112,12 @@ Vector3d RTSphere::getNormal(Eigen::Vector3d hitPoint)
 
     return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }
+
+//void RTSphere::updateBoundingBox()
+//{
+////    this->boundingBox->setCorner1(this->center - Vector3d(radius, radius, radius));
+////    this->boundingBox->setCorner1(this->center + Vector3d(radius, radius, radius));
+//}
 
 string RTSphere::toString()
 {

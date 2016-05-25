@@ -3,6 +3,8 @@
 //
 
 #include "RTTriangle.h"
+//#include "RTBox.h"
+#include <algorithm>
 
 using namespace std;
 using namespace Eigen;
@@ -81,6 +83,20 @@ void RTTriangle::setVertices(Vector3d v1, Vector3d v2, Vector3d v3)
 
     calcNormal();
 }
+
+//void RTTriangle::updateBoundingBox()
+//{
+////    double minX = min(min(this->v1.x(), this->v2.x()), this->v3.x());
+////    double minY = min(min(this->v1.y(), this->v2.y()), this->v3.y());
+////    double minZ = min(min(this->v1.z(), this->v2.z()), this->v3.z());
+////    
+////    double maxX = max(max(this->v1.x(), this->v2.x()), this->v3.x());
+////    double maxY = max(max(this->v1.y(), this->v2.y()), this->v3.y());
+////    double maxZ = max(max(this->v1.z(), this->v2.z()), this->v3.z());
+////    
+////    this->boundingBox->setCorner1(Vector3d(minX, minY, minZ));
+////    this->boundingBox->setCorner2(Vector3d(maxX, maxY, maxZ));
+//}
 
 string RTTriangle::toString()
 {

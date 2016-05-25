@@ -14,6 +14,8 @@
 #include "Light.h"
 #include "Color.h"
 #include "Shader.h"
+#include "BVHNode.h"
+#include "BVHTree.h"
 
 #define EIGEN_DONT_ALIGN_STATICALLY
 #include <Eigen/Dense>
@@ -53,6 +55,9 @@ private:
     
     std::vector<std::shared_ptr<Light>> lights;
     std::vector<std::shared_ptr<RTObject>> objects;
+    
+    std::shared_ptr<BVHNode> root;
+    std::shared_ptr<BVHTree> bvhTree;
     
     Shader* shader;
     
