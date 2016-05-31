@@ -20,6 +20,7 @@ RTObject::RTObject()
     this->ior = 0.0;
 
     this->currTransMatrix = Matrix4d::Identity();
+    this->currInverseTransMatrix = Matrix4d::Identity();
     this->boundingBox = make_shared<BoundingBox>();
 }
 
@@ -61,6 +62,16 @@ bool RTObject::isTriangle()
 bool RTObject::isBox()
 {
     return (this->type == 4);
+}
+
+bool RTObject::isBoundingBox()
+{
+    return (this->type == 5);
+}
+
+void RTObject::setType(int type)
+{
+    this->type = type;
 }
 
 int RTObject::getId()
@@ -125,9 +136,19 @@ void RTObject::applyTranslation(double x, double y, double z)
     this->currTransMatrix = translate * this->currTransMatrix;
 }
 
+void RTObject::calculateCTMInverse()
+{
+    this->currInverseTransMatrix = this->currTransMatrix.inverse();
+}
+
 Matrix4d RTObject::getCTM()
 {
     return this->currTransMatrix;
+}
+
+Matrix4d RTObject::getCTMInverse()
+{
+    return this->currInverseTransMatrix;
 }
 
 shared_ptr<BoundingBox> RTObject::getBoundingBox()

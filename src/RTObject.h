@@ -39,14 +39,19 @@ public:
     bool isPlane();
     bool isTriangle();
     bool isBox();
+    bool isBoundingBox();
+    
+    void setType(int type);
 
     int getId();
 
     void applyScale(double x, double y, double z);
     void applyRotation(double x, double y, double z);
     void applyTranslation(double x, double y, double z);
+    void calculateCTMInverse();
 
     Eigen::Matrix4d getCTM();
+    Eigen::Matrix4d getCTMInverse();
     std::shared_ptr<BoundingBox> getBoundingBox();
 
 protected:
@@ -55,6 +60,7 @@ protected:
     int objectId;
 
     Eigen::Matrix4d currTransMatrix;
+    Eigen::Matrix4d currInverseTransMatrix;
     
     std::shared_ptr<BoundingBox> boundingBox;
 

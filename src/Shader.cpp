@@ -23,42 +23,56 @@ void Shader::addLights(vector<shared_ptr<Light>> lights)
     }
 }
 
-void Shader::addObjects(vector<shared_ptr<RTObject>> objects)
+void Shader::addPlanes(vector<shared_ptr<RTObject>> objects)
 {
     for (int ndx = 0; ndx < objects.size(); ndx++)
     {
-        this->objects.push_back(objects[ndx]);
+        this->planes.push_back(objects[ndx]);
     }
+}
+
+void Shader::setBVHTree(shared_ptr<BVHTree> bvhTree)
+{
+    this->bvhTree = bvhTree;
 }
 
 // Checks to see if the closest intersected object is in a shadow.
 bool Shader::isObjectInShadow(RTIntersectObject* object, Vector3d hitPoint,
                                         Vector3d dLight, double distToLight)
 {
-    //Temporarily save the old t value for our closest object.
+    bool hit = false;
     double origTVal = object->getTValue();
     
-    // Loop over objects to determine lighting.
-    for (int k = 0; k < objects.size(); k++)
+    // Move the ray a little bit forward.
+    hitPoint = hitPoint + 0.0001 * dLight;
+    
+    RTIntersectObject* closestObject = bvhTree->hit(bvhTree->getRoot(), &hitPoint, dLight);
+    object->setTValue(origTVal);
+    
+    if (closestObject != NULL && closestObject->hasIntersected() && closestObject->getTValue() > 0.0
+        && closestObject->getTValue() <= distToLight)
     {
-        Vector4d PoWorld = objects[k]->getCTM().inverse() * Vector4d(hitPoint.x(), hitPoint.y(), hitPoint.z(), 1.0);
-        Vector4d dWorld = objects[k]->getCTM().inverse() * Vector4d(dLight.x(), dLight.y(), dLight.z(), 0.0);
-        
-        shared_ptr<RTIntersectObject> intersectObj =
-        objects[k]->getIntersection(Vector3d(PoWorld.x(), PoWorld.y(), PoWorld.z()),
-                                    Vector3d(dWorld.x(), dWorld.y(), dWorld.z()));
-        double nextTValue = intersectObj->getTValue();
-        
-        if (intersectObj->hasIntersected() && nextTValue > 0.0 && nextTValue <= distToLight)
+        hit = true;
+    }
+    else
+    {
+        for (int ndx = 0; ndx < planes.size(); ndx++)
         {
-            if (intersectObj.get() != object)
+            Vector4d PoWorld = planes[ndx]->getCTMInverse() * Vector4d(hitPoint.x(), hitPoint.y(), hitPoint.z(), 1.0);
+            Vector4d dWorld = planes[ndx]->getCTMInverse() * Vector4d(dLight.x(), dLight.y(), dLight.z(), 0.0);
+            
+            shared_ptr<RTIntersectObject> intersectObj =
+            planes[ndx]->getIntersection(Vector3d(PoWorld.x(), PoWorld.y(), PoWorld.z()),
+                                         Vector3d(dWorld.x(), dWorld.y(), dWorld.z()));
+            double currentTValue = intersectObj->getTValue();
+            
+            if (intersectObj->hasIntersected() && currentTValue > 0.0 && currentTValue <= distToLight)
             {
-                object->setTValue(origTVal);
-                return true;
+                hit = true;
             }
         }
     }
     
     object->setTValue(origTVal);
-    return false;
+    return hit;
 }

@@ -374,6 +374,7 @@ void Parser::parseSphere(ifstream* readFile)
         }
     }
     
+    newSphere->calculateCTMInverse();
     this->objects.push_back(newSphere);
 }
 
@@ -542,6 +543,7 @@ void Parser::parsePlane(std::ifstream* readFile)
         }
     }
     
+    newPlane->calculateCTMInverse();
     this->planes.push_back(newPlane);
 }
 
@@ -724,6 +726,7 @@ void Parser::parseTriangle(std::ifstream* readFile)
         }
     }
 
+    newTriangle->calculateCTMInverse();
     this->objects.push_back(newTriangle);
 }
 
@@ -906,6 +909,7 @@ void Parser::parseBox(std::ifstream* readFile)
         }
     }
     
+    newBox->calculateCTMInverse();
     this->objects.push_back(newBox);
 }
 

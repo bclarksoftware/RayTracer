@@ -24,7 +24,22 @@ BVHTree::~BVHTree()
 
 void BVHTree::transformBoundingBox(std::shared_ptr<BoundingBox> boundingBox, Eigen::Matrix4d ctm)
 {
-    // TODO
+    Vector3d right = ctm.col(0).head<3>();
+    Vector3d up = ctm.col(1).head<3>();
+    Vector3d back = ctm.col(2).head<3>();
+    Vector3d trans = ctm.col(3).head<3>();
+    
+    Vector3d xa = right * boundingBox->corner1.x();
+    Vector3d xb = right * boundingBox->corner2.x();
+    
+    Vector3d ya = up * boundingBox->corner1.y();
+    Vector3d yb = up * boundingBox->corner2.y();
+    
+    Vector3d za = back * boundingBox->corner1.z();
+    Vector3d zb = back * boundingBox->corner2.z();
+    
+    boundingBox->corner1 = xa.cwiseMin(xb) + ya.cwiseMin(yb) + za.cwiseMin(zb) + trans;
+    boundingBox->corner2 = xa.cwiseMax(xb) + ya.cwiseMax(yb) + za.cwiseMax(zb) + trans;
 }
 
 shared_ptr<BVHNode> BVHTree::buildBVH(vector<shared_ptr<BVHNode>> nodes, int axis)
@@ -43,14 +58,14 @@ shared_ptr<BVHNode> BVHTree::buildBVH(vector<shared_ptr<BVHNode>> nodes, int axi
         newNode->left = nodes[0];
         newNode->right = nodes[1];
         newNode->object = createBox(combineBounds(nodes[0]->object->getBoundingBox(),
-                                              nodes[0]->object->getBoundingBox()));
+                                              nodes[1]->object->getBoundingBox()));
     }
     else
     {
         // Sort objects in nodes along selected axis
         nodes = sortNodes(nodes, axis);
         
-        // Create two separate vectors
+        // Create two separate vectors.
         vector<shared_ptr<BVHNode>> left(nodes.begin(), nodes.begin() + nodes.size()/2);
         vector<shared_ptr<BVHNode>> right(nodes.begin() + nodes.size()/2, nodes.end());
         
@@ -66,18 +81,19 @@ shared_ptr<BVHNode> BVHTree::buildBVH(vector<shared_ptr<BVHNode>> nodes, int axi
 
 RTIntersectObject* BVHTree::hit(std::shared_ptr<BVHNode> node, Eigen::Vector3d* Po, Eigen::Vector3d d)
 {
-    if (node->object->getIntersection(*Po, d)->hasIntersected())
+    Vector3d PoWorld = (node->object->getCTMInverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0)).head<3>();
+    Vector3d dWorld = (node->object->getCTMInverse() * Vector4d(d.x(), d.y(), d.z(), 0.0)).head<3>();
+    shared_ptr<RTIntersectObject> hitObj = node->object->getIntersection(PoWorld, dWorld);
+    
+    if (hitObj->hasIntersected())
     {
         RTIntersectObject* left = NULL;
         RTIntersectObject* right = NULL;
         
-        // Check for child.
+        // Check for leaf node.
         if (node->left == NULL && node->right == NULL)
         {
-            Vector4d PoWorld = node->object->getCTM().inverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
-            Vector4d dWorld = node->object->getCTM().inverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
-            return node->object->getIntersection(Vector3d(PoWorld.x(), PoWorld.y(), PoWorld.z()),
-                                                 Vector3d(dWorld.x(), dWorld.y(), dWorld.z())).get();
+            return hitObj.get();
         }
         
         if (node->left != NULL) // Try hit left
@@ -89,10 +105,9 @@ RTIntersectObject* BVHTree::hit(std::shared_ptr<BVHNode> node, Eigen::Vector3d* 
             right = hit(node->right, Po, d);
         }
         
-        if (left != NULL && right != NULL &&
-            left->hasIntersected() && right->hasIntersected())
+        if (left != NULL && right != NULL && left->hasIntersected() && right->hasIntersected())
         {
-            if (left->getTValue() < right->getTValue())
+            if (left->getTValue() > 0.0 && left->getTValue() < right->getTValue())
             {
                 return left;
             }
@@ -101,11 +116,11 @@ RTIntersectObject* BVHTree::hit(std::shared_ptr<BVHNode> node, Eigen::Vector3d* 
                 return right;
             }
         }
-        else if (left != NULL && left->hasIntersected())
+        else if (left != NULL && left->hasIntersected() && left->getTValue() > 0.0)
         {
             return left;
         }
-        else if (right != NULL && right->hasIntersected())
+        else if (right != NULL && right->hasIntersected() && right->getTValue() > 0.0)
         {
             return right;
         }
@@ -116,7 +131,11 @@ RTIntersectObject* BVHTree::hit(std::shared_ptr<BVHNode> node, Eigen::Vector3d* 
 
 shared_ptr<RTBox> BVHTree::createBox(shared_ptr<BoundingBox> bounding)
 {
-    return make_shared<RTBox>(bounding->corner1, bounding->corner2);
+    shared_ptr<RTBox> newBox = make_shared<RTBox>(bounding->corner1, bounding->corner2);
+    newBox->setType(5); // Bounding box type.
+    newBox->updateBoundingBox();
+    
+    return newBox;
 }
 
 shared_ptr<BoundingBox> BVHTree::combineBounds(shared_ptr<BoundingBox> b1, shared_ptr<BoundingBox> b2)
@@ -136,24 +155,21 @@ shared_ptr<BoundingBox> BVHTree::combineBounds(shared_ptr<BoundingBox> b1, share
 
 vector<shared_ptr<BVHNode>> BVHTree::sortNodes(vector<shared_ptr<BVHNode>> nodes, int axis)
 {
-    int ndx;
-    shared_ptr<BVHNode> min, temp;
-    for (int i = 0; i < nodes.size(); i++)
+    shared_ptr<BVHNode> temp;
+    for (int i = 0; i < nodes.size() - 1; i++)
     {
-        ndx = 0;
-        min = nodes[i];
-        for (int j = 0; j < nodes.size(); j++)
+        int min = i;
+        for (int j = i + 1; j < nodes.size(); j++)
         {
-            if (min->object->getBoundingBox()->corner1[axis] > nodes[j]->object->getBoundingBox()->corner1[axis])
+            if (nodes[i]->object->getBoundingBox()->corner1[axis] > nodes[j]->object->getBoundingBox()->corner1[axis])
             {
-                min = nodes[j];
-                ndx = j;
+                min = j;
             }
         }
         
         temp = nodes[i];
-        nodes[i] = min;
-        nodes[ndx] = temp;
+        nodes[i] = nodes[min];
+        nodes[min] = temp;
     }
     
     return nodes;
@@ -162,4 +178,47 @@ vector<shared_ptr<BVHNode>> BVHTree::sortNodes(vector<shared_ptr<BVHNode>> nodes
 shared_ptr<BVHNode> BVHTree::getRoot()
 {
     return root;
+}
+
+void BVHTree::printTree(shared_ptr<BVHNode> node)
+{
+//    if (node->left != NULL)
+//    {
+//        if (node->left->left != NULL || node->left->right != NULL)
+//        {
+//            cout << "Node Left:";
+//            printTree(node->left);
+//            cout << "*" << endl;
+//        }
+//        else
+//        {
+//            cout << "Left Child" << endl;
+//        }
+//    }
+//    if (node->right != NULL)
+//    {
+//        if (node->right->left != NULL || node->right->right != NULL)
+//        {
+//            cout << "Node Right:";
+//            printTree(node->right);
+//            cout << "*" << endl;
+//        }
+//        else
+//        {
+//            cout << "Right Child" << endl;
+//        }
+//    }
+//    if (node->left != NULL)
+//    {
+//        printTree(node->left);
+//    }
+//    if (node->right != NULL)
+//    {
+//        printTree(node->right);
+//    }
+//    
+//    if (node->left == NULL && node->right == NULL)
+//    {
+//        cout << "child" << endl;
+//    }
 }

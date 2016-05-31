@@ -8,6 +8,7 @@
 #include "Light.h"
 #include "Color.h"
 #include "RTIntersectObject.h"
+#include "BVHTree.h"
 
 #define EIGEN_DONT_ALIGN_STATICALLY
 #include <Eigen/Dense>
@@ -18,7 +19,8 @@ public:
     ~Shader();
     
     void addLights(std::vector<std::shared_ptr<Light>> lights);
-    void addObjects(std::vector<std::shared_ptr<RTObject>> objects);
+    void addPlanes(std::vector<std::shared_ptr<RTObject>> planes);
+    void setBVHTree(std::shared_ptr<BVHTree> bvhTree);
     
     virtual color_t getLocalColor(Eigen::Vector3d* Po, Eigen::Vector3d d,
                                   RTIntersectObject* closestObject) = 0;
@@ -28,7 +30,8 @@ protected:
     bool debug;
     
     std::vector<std::shared_ptr<Light>> lights;
-    std::vector<std::shared_ptr<RTObject>> objects;
+    std::vector<std::shared_ptr<RTObject>> planes;
+    std::shared_ptr<BVHTree> bvhTree;
     
     bool isObjectInShadow(RTIntersectObject* object, Eigen::Vector3d hitPoint,
                           Eigen::Vector3d dLight, double distToLight);

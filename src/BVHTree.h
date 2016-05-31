@@ -23,6 +23,8 @@ public:
     
     RTIntersectObject* hit(std::shared_ptr<BVHNode> node, Eigen::Vector3d* Po, Eigen::Vector3d d);
     
+    void printTree(std::shared_ptr<BVHNode> node);
+    
 private:
     std::shared_ptr<BVHNode> root;
     

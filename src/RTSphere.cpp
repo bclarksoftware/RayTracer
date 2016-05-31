@@ -104,11 +104,11 @@ shared_ptr<RTIntersectObject> RTSphere::getIntersection(Vector3d Po, Vector3d d)
 
 Vector3d RTSphere::getNormal(Eigen::Vector3d hitPoint)
 {
-    Vector4d temp = this->getCTM().inverse() * Vector4d(hitPoint.x(), hitPoint.y(), hitPoint.z(), 1.0);
+    Vector4d temp = this->getCTMInverse() * Vector4d(hitPoint.x(), hitPoint.y(), hitPoint.z(), 1.0);
     hitPoint = Vector3d(temp.x(), temp.y(), temp.z());
     Vector3d normal = (hitPoint - this->center) / this->radius;
 
-    Vector4d normalWorld = this->getCTM().inverse().transpose() * Vector4d(normal.x(), normal.y(), normal.z(), 0.0);
+    Vector4d normalWorld = this->getCTMInverse().transpose() * Vector4d(normal.x(), normal.y(), normal.z(), 0.0);
 
     return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }

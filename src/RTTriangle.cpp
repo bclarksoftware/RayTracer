@@ -49,12 +49,17 @@ shared_ptr<RTIntersectObject> RTTriangle::getIntersection(Vector3d Po, Vector3d 
     Vector3d x = A.colPivHouseholderQr().solve(b);
 
     // If all boundaries are good.
-    if (x.z() >= 0.0 && x.z() && (x.y() >= 0.0 && x.y() <= 1.0) && (x.x() >= 0.0 && (x.x() + x.y()) <= 1.0))
+    if (x.z() >= 0.0 && (x.y() >= 0.0 && x.y() <= 1.0) && (x.x() >= 0.0 && (x.x() + x.y()) <= 1.0))
     {
         hitData->setIntersected(true);
         this->hitData->setTValue(x.z());
         this->hitData->setColor(this->getColor());
         this->hitData->setHitObject(this);
+        
+        if (d.dot(this->normal) > 0.0)
+        {
+            this->normal *= -1.0;
+        }
     }
 
     return hitData;
@@ -70,7 +75,7 @@ void RTTriangle::calcNormal()
 
 Vector3d RTTriangle::getNormal(Vector3d hitPoint)
 {
-    Vector4d normalWorld = this->getCTM().inverse().transpose() * Vector4d(this->normal.x(), this->normal.y(), this->normal.z(), 0.0);
+    Vector4d normalWorld = this->getCTMInverse().transpose() * Vector4d(this->normal.x(), this->normal.y(), this->normal.z(), 0.0);
 
     return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }
@@ -86,16 +91,29 @@ void RTTriangle::setVertices(Vector3d v1, Vector3d v2, Vector3d v3)
 
 void RTTriangle::updateBoundingBox()
 {
-    double minX = min(min(this->v1.x(), this->v2.x()), this->v3.x());
-    double minY = min(min(this->v1.y(), this->v2.y()), this->v3.y());
-    double minZ = min(min(this->v1.z(), this->v2.z()), this->v3.z());
+//    double minX = min(min(this->v1.x(), this->v2.x()), this->v3.x());
+//    double minY = min(min(this->v1.y(), this->v2.y()), this->v3.y());
+//    double minZ = min(min(this->v1.z(), this->v2.z()), this->v3.z());
+//    
+//    double maxX = max(max(this->v1.x(), this->v2.x()), this->v3.x());
+//    double maxY = max(max(this->v1.y(), this->v2.y()), this->v3.y());
+//    double maxZ = max(max(this->v1.z(), this->v2.z()), this->v3.z());
+    Vector3d c1, c2;
+    c1 = c2 = this->v1;
+    for (int i = 0; i < 3; i++) {
+        if (this->v2[i] < c1[i])
+            c1[i] = this->v2[i];
+        if (this->v2[i] > c2[i])
+            c2[i] = this->v2[i];
+        
+        if (this->v3[i] < c1[i])
+            c1[i] = this->v3[i];
+        if (this->v3[i] > c2[i])
+            c2[i] = this->v3[i];
+    }
     
-    double maxX = max(max(this->v1.x(), this->v2.x()), this->v3.x());
-    double maxY = max(max(this->v1.y(), this->v2.y()), this->v3.y());
-    double maxZ = max(max(this->v1.z(), this->v2.z()), this->v3.z());
-    
-    this->boundingBox->corner1 = Vector3d(minX, minY, minZ);
-    this->boundingBox->corner2 = Vector3d(maxX, maxY, maxZ);
+    this->boundingBox->corner1 = c1; //Vector3d(minX, minY, minZ);
+    this->boundingBox->corner2 = c2; //Vector3d(maxX, maxY, maxZ);
 }
 
 string RTTriangle::toString()

@@ -149,7 +149,7 @@ shared_ptr<RTIntersectObject> RTBox::getIntersection(Vector3d Po, Vector3d d)
         }
     //}
     
-    if (tgMin < tgMax && tgMax >= 0)
+    if (tgMin <= tgMax && tgMax >= 0)
     {
         if (tgMin < 0.0)
         {
@@ -172,7 +172,7 @@ Eigen::Vector3d RTBox::getNormal(Vector3d hitPoint)
 {
     Vector3d normal = Vector3d(0.0, 0.0, 0.0);
     
-    Vector4d temp = this->getCTM().inverse() * Vector4d(hitPoint.x(), hitPoint.y(), hitPoint.z(), 1.0);
+    Vector4d temp = this->getCTMInverse() * Vector4d(hitPoint.x(), hitPoint.y(), hitPoint.z(), 1.0);
     hitPoint = Vector3d(temp.x(), temp.y(), temp.z());
     
     if (hitPoint.x() + 0.000001 >= corner1.x() && hitPoint.x() - 0.000001 <= corner1.x())
@@ -204,7 +204,7 @@ Eigen::Vector3d RTBox::getNormal(Vector3d hitPoint)
         cout << "Probably close but not exact" << endl;
     }
     
-    Vector4d normalWorld = this->getCTM().inverse().transpose() * Vector4d(normal.x(), normal.y(), normal.z(), 0.0);
+    Vector4d normalWorld = this->getCTMInverse().transpose() * Vector4d(normal.x(), normal.y(), normal.z(), 0.0);
     
     return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }

@@ -72,11 +72,20 @@ void Scene::parseScene()
     planes = parser->getPlanes();
     
     shader->addLights(lights);
-    shader->addObjects(objects);
-    shader->addObjects(planes);
+    shader->addPlanes(planes);
     
     bvhTree = make_shared<BVHTree>(objects);
     root = bvhTree->getRoot();
+    
+    shader->setBVHTree(bvhTree);
+    
+//    cout << "Root Node" << endl;
+//    bvhTree->printTree(root);
+//
+//    if (root->right == NULL)
+//    {
+//        cout << "My root right is null" << endl;
+//    }
 }
 
 // Returns the closest intersected object.
@@ -86,8 +95,8 @@ RTIntersectObject* Scene::getClosestIntersectedObject(Vector3d* Po, Vector3d d)
 
     for (int ndx = 0; ndx < planes.size(); ndx++)
     {
-        Vector4d PoWorld = planes[ndx]->getCTM().inverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
-        Vector4d dWorld = planes[ndx]->getCTM().inverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
+        Vector4d PoWorld = planes[ndx]->getCTMInverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
+        Vector4d dWorld = planes[ndx]->getCTMInverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
 
         shared_ptr<RTIntersectObject> intersectObj =
                 planes[ndx]->getIntersection(Vector3d(PoWorld.x(), PoWorld.y(), PoWorld.z()),
@@ -134,8 +143,8 @@ color_t Scene::rayCastReflection(Vector3d* Po, Vector3d d)
             << "at T = " << closestObject->getTValue() << ", Interesection = {"
             << hitPoint.x() << ", " << hitPoint.y() << ", " << hitPoint.z() << "}" << endl;
             
-            Vector4d PoWorld = closestObject->getHitObject()->getCTM().inverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
-            Vector4d dWorld = closestObject->getHitObject()->getCTM().inverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
+            Vector4d PoWorld = closestObject->getHitObject()->getCTMInverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
+            Vector4d dWorld = closestObject->getHitObject()->getCTMInverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
             
             cout << "Transformed Ray: {" << PoWorld.x() << ", " << PoWorld.y() << ", " << PoWorld.z() << "} -> {"
             << dWorld.x() << ", " << dWorld.y() << ", " << dWorld.z() << "}" << endl;
@@ -217,8 +226,8 @@ color_t Scene::rayCastRefraction(Vector3d* Po, Vector3d d)
         cout << "Ray: {" << Po->x() << ", " << Po->y() << ", " << Po->z() << "} -> {"
         << d.x() << ", " << d.y() << ", " << d.z() << "}" << endl;
         
-        Vector4d PoWorld = closestObject->getHitObject()->getCTM().inverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
-        Vector4d dWorld = closestObject->getHitObject()->getCTM().inverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
+        Vector4d PoWorld = closestObject->getHitObject()->getCTMInverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
+        Vector4d dWorld = closestObject->getHitObject()->getCTMInverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
         
         cout << "Transformed Ray: {" << PoWorld.x() << ", " << PoWorld.y() << ", " << PoWorld.z() << "} -> {"
         << dWorld.x() << ", " << dWorld.y() << ", " << dWorld.z() << "}" << endl;
@@ -338,8 +347,8 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
     {
         if (debug)
         {
-            Vector4d PoWorld = closestObject->getHitObject()->getCTM().inverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
-            Vector4d dWorld = closestObject->getHitObject()->getCTM().inverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
+            Vector4d PoWorld = closestObject->getHitObject()->getCTMInverse() * Vector4d(Po->x(), Po->y(), Po->z(), 1.0);
+            Vector4d dWorld = closestObject->getHitObject()->getCTMInverse() * Vector4d(d.x(), d.y(), d.z(), 0.0);
             
             cout << "Transformed Ray: {" << PoWorld.x() << ", " << PoWorld.y() << ", " << PoWorld.z() << "} -> {"
             << dWorld.x() << ", " << dWorld.y() << ", " << dWorld.z() << "}" << endl;
@@ -642,6 +651,7 @@ void Scene::render()
                                 << ", " << finalColor.b * 255.0 << ">" << endl;
                                 cout << "\n-----------------------------------------------------------------------"
                                 << "------------------------------------------------\n" << endl;
+                                image->pixel(i, j, finalColor);
                             }
                         }
                     }
@@ -660,7 +670,7 @@ void Scene::exportRender()
 {
     // write the targa file to disk
     // true to scale to max color, false to clamp to 1.0
-    if (!debug)
+    if (true || !debug)
     {
         image->WriteTga((char *)imageName.c_str(), true);
     }
