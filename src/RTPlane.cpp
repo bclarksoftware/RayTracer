@@ -9,6 +9,7 @@ RTPlane::RTPlane()
     this->type = 2;
 
     this->normal = Vector3d();
+    this->localNorm = Vector3d();
     this->hitData = make_shared<RTIntersectObject>();
 }
 
@@ -18,6 +19,7 @@ RTPlane::RTPlane(double a, double b, double c, double distance)
     this->type = 2;
 
     this->normal = Vector3d(a, b, c);
+    this->localNorm = Vector3d(a, b, c);
     this->distance = distance;
     
     this->hitData = make_shared<RTIntersectObject>();
@@ -30,7 +32,7 @@ RTPlane::~RTPlane()
 
 Eigen::Vector3d RTPlane::getNormal(Vector3d hitPoint)
 {
-    Vector4d normalWorld = this->getCTMInverse().transpose() * Vector4d(this->normal.x(), this->normal.y(), this->normal.z(), 0.0);
+    Vector4d normalWorld = this->getCTMInverse().transpose() * Vector4d(this->localNorm.x(), this->localNorm.y(), this->localNorm.z(), 0.0);
 
     return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }
@@ -43,6 +45,7 @@ double RTPlane::getDistance()
 void RTPlane::setNormal(double a, double b, double c)
 {
     this->normal = Vector3d(a, b, c);
+    this->localNorm = Vector3d(a, b, c);
 }
 
 void RTPlane::setDistance(double distance)
@@ -52,6 +55,11 @@ void RTPlane::setDistance(double distance)
 
 shared_ptr<RTIntersectObject> RTPlane::getIntersection(Vector3d Po, Vector3d d)
 {
+    if (this->localNorm.dot(d) > 0.0)
+    {
+        this->localNorm *= -1.0;
+    }
+    
     double t;
     Vector3d P1 = this->distance * this->normal;
     

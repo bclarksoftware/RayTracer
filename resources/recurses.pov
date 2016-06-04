@@ -6,16 +6,15 @@ camera {
   look_at   <0, 0, 0>
 }
 
-
 light_source {<-5, 3, 0> color rgb <0.3, 0.5, 0.3>}
 light_source {<5, 10, 5> color rgb <0.3, 0.4, 0.5>}
 
 // floor
-//plane {<0, 1, 0>, -4
-//  pigment {color rgb <0.2, 0.2, 0.8>}
-//  finish {ambient 0.4 diffuse 0.2 reflection 0.2}
-//  translate <0, -1, 0>
-//}
+plane {<0, 1, 0>, -4
+  pigment {color rgb <0.2, 0.2, 0.8>}
+  finish {ambient 0.4 diffuse 0.2 reflection 0.2}
+  translate <0, -1, 0>
+}
 
 // left wall
 plane {<1, 0, 0>, -8
@@ -63,7 +62,6 @@ sphere { <0, 1.74305, 0>, 2
   translate <-4, -3, 2>
 }
 
-
 // and a few assorted objects
 sphere { <0, 0, 0>, 2
   pigment {color rgbf <1.0, 1.0, 1.0, 0.8>}
@@ -77,7 +75,6 @@ box { <-2, -5, -5>, <2, 5, 5>
   rotate <0, -45, 0>
   translate <3, 0, -5>
 }
-
 
 // tile the floor
 // leftmost column

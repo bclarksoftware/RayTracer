@@ -35,6 +35,7 @@ private:
     Eigen::Vector3d v2;
     Eigen::Vector3d v3;
 
+    Eigen::Vector3d localNorm;
     Eigen::Vector3d normal;
 
     std::shared_ptr<RTIntersectObject> hitData;

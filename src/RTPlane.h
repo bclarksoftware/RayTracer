@@ -30,7 +30,7 @@ public:
     virtual std::string toString();
     
 private:
-    
+    Eigen::Vector3d localNorm;
     Eigen::Vector3d normal;
     double distance;
     

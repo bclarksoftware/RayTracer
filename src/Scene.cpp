@@ -78,14 +78,6 @@ void Scene::parseScene()
     root = bvhTree->getRoot();
     
     shader->setBVHTree(bvhTree);
-    
-//    cout << "Root Node" << endl;
-//    bvhTree->printTree(root);
-//
-//    if (root->right == NULL)
-//    {
-//        cout << "My root right is null" << endl;
-//    }
 }
 
 // Returns the closest intersected object.
@@ -172,8 +164,6 @@ color_t Scene::rayCastReflection(Vector3d* Po, Vector3d d)
                 double Ro = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));
                 
                 double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
-                
-//                reflectRay = (R * reflectRay).normalized();
                 
                 // Move the ray a little forward.
                 *newP = *newP + 0.00001 * reflectRay;
@@ -286,15 +276,9 @@ color_t Scene::rayCastRefraction(Vector3d* Po, Vector3d d)
             if (radicand >= 0.0)
             {
                 Vector3d T = (n * (d + N * (dDotN)) - (N * sqrt( radicand ))).normalized();
-//                T = (T * (1.0 - R)).normalized();
                 
                 double cosTheta = dDotN;
                 double Ro = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));
-                
-//                if (n1 > n2)
-//                {
-//                    cosTheta = T.dot(N);
-//                }
                 
                 double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
                 
@@ -390,8 +374,6 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
                 
                 double R = Ro + (1.0 - Ro) * pow((1.0 - cosTheta), 5.0);
                 
-//                reflectRay = (R * reflectRay).normalized();
-                
                 // Move the ray a little forward.
                 *newP = *newP + 0.00001 * reflectRay;
                 
@@ -452,7 +434,6 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
             if (radicand >= 0.0)
             {
                 Vector3d T = (n * (d + N * (dDotN)) - (N * sqrt( radicand ))).normalized();
-//                T = (T * (1.0 - R)).normalized();
                 
                 double cosTheta = dDotN;
                 double Ro = ((n1 - n2) / (n1 + n2)) * ((n1 - n2) / (n1 + n2));

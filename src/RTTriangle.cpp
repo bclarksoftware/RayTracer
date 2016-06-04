@@ -38,6 +38,11 @@ RTTriangle::~RTTriangle()
 shared_ptr<RTIntersectObject> RTTriangle::getIntersection(Vector3d Po, Vector3d d)
 {
     hitData->reset();
+    
+    if (this->localNorm.dot(d) > 0.0)
+    {
+        this->localNorm *= -1.0;
+    }
 
     Matrix3d A;
     Vector3d b = (v1 - Po);
@@ -71,11 +76,12 @@ void RTTriangle::calcNormal()
     Vector3d vec2 = (v3 - v1).normalized();
 
     this->normal = vec1.cross(vec2).normalized();
+    this->localNorm = Vector3d(this->normal.x(), this->normal.y(), this->normal.z());
 }
 
 Vector3d RTTriangle::getNormal(Vector3d hitPoint)
 {
-    Vector4d normalWorld = this->getCTMInverse().transpose() * Vector4d(this->normal.x(), this->normal.y(), this->normal.z(), 0.0);
+    Vector4d normalWorld = this->getCTMInverse().transpose() * Vector4d(this->localNorm.x(), this->localNorm.y(), this->localNorm.z(), 0.0);
 
     return Vector3d(normalWorld.x(), normalWorld.y(), normalWorld.z());
 }
@@ -91,13 +97,6 @@ void RTTriangle::setVertices(Vector3d v1, Vector3d v2, Vector3d v3)
 
 void RTTriangle::updateBoundingBox()
 {
-//    double minX = min(min(this->v1.x(), this->v2.x()), this->v3.x());
-//    double minY = min(min(this->v1.y(), this->v2.y()), this->v3.y());
-//    double minZ = min(min(this->v1.z(), this->v2.z()), this->v3.z());
-//    
-//    double maxX = max(max(this->v1.x(), this->v2.x()), this->v3.x());
-//    double maxY = max(max(this->v1.y(), this->v2.y()), this->v3.y());
-//    double maxZ = max(max(this->v1.z(), this->v2.z()), this->v3.z());
     Vector3d c1, c2;
     c1 = c2 = this->v1;
     for (int i = 0; i < 3; i++) {
@@ -112,8 +111,8 @@ void RTTriangle::updateBoundingBox()
             c2[i] = this->v3[i];
     }
     
-    this->boundingBox->corner1 = c1; //Vector3d(minX, minY, minZ);
-    this->boundingBox->corner2 = c2; //Vector3d(maxX, maxY, maxZ);
+    this->boundingBox->corner1 = c1;
+    this->boundingBox->corner2 = c2;
 }
 
 string RTTriangle::toString()
