@@ -38,3 +38,7 @@ Looking for my own pov file?
 - TIME (Before BVH):
 - Runtime on recurses.pov = 1:33
 - Runtime on balls2.pov = 41:00
+
+- TIME (After BVH)
+- Runtime on recurses.pov = 10 seconds
+- Runtime on balls2.pov = 9 minutes and 30 seconds
