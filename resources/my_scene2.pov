@@ -22,20 +22,20 @@ plane {<0, 0, 1>, -5
   rotate <0, 30, 0>
 }
 
-sphere { <2, 1, -3.74305>, 2
-  pigment { color rgb <1.0, 1.0, 1.0>}
+sphere { <2, 4, 0>, 2
+  pigment { color rgb <1.0, 0.0, 0.0>}
   finish {ambient 0.1 diffuse 0.8}
   translate <-4, -3, 2>
 }
 
-sphere { <6, 1, -3.74305>, 2
-  pigment { color rgb <1.0, 1.0, 1.0>}
+sphere { <6, 4, 0>, 2
+  pigment { color rgb <1.0, 0.0, 0.0>}
   finish {ambient 0.1 diffuse 0.8}
   translate <-4, -3, 2>
 }
 
-sphere { <4, 4, -2>, 2
-  pigment { color rgb <1.0, 1.0, 1.0>}
+sphere { <4, 1.5, 0>, 2
+  pigment { color rgb <0.0, 0.0, 1.0>}
   finish {ambient 0.1 diffuse 0.8}
   translate <-4, -3, 2>
 }
