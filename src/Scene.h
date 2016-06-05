@@ -22,7 +22,7 @@
 
 class Scene {
 public:
-    Scene(int width, int height, std::string sceneFileName, int shadeType, int debug,
+    Scene(int width, int height, std::string sceneFileName, int monteCarloOn, int shadeType, int debug,
           int antiAliasOn, std::vector<std::pair<int,int>> indices);
     ~Scene();
     
@@ -41,6 +41,7 @@ private:
     
     int shadeType;
     int antiAliasOn;
+    int monteCarloOn;
 
     int reflectCount;
     int refractCount;
@@ -67,9 +68,11 @@ private:
 
     RTIntersectObject* getClosestIntersectedObject(Eigen::Vector3d* Po, Eigen::Vector3d d);
 
-    color_t rayCast(Eigen::Vector3d* Po, Eigen::Vector3d d);
+    color_t rayCast(Eigen::Vector3d* Po, Eigen::Vector3d d, int monteCarloCount);
     color_t rayCastReflection(Eigen::Vector3d* Po, Eigen::Vector3d d);
     color_t rayCastRefraction(Eigen::Vector3d* Po, Eigen::Vector3d d);
+    
+    Eigen::Vector3d cosineSampleHemisphere(double u1, double u2, Eigen::Vector3d normal);
 
 };
 

@@ -15,6 +15,8 @@ public:
     
     virtual color_t getLocalColor(Eigen::Vector3d* Po, Eigen::Vector3d d,
                                   RTIntersectObject* closestObject);
+    virtual color_t getLocalColorNoAmbient(Eigen::Vector3d* Po, Eigen::Vector3d d,
+                                  RTIntersectObject* closestObject);
     virtual std::string toString();
     
 private:

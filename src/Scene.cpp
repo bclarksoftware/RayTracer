@@ -11,18 +11,21 @@
 #include "BlinnPhongShader.h"
 #include "LambertianShader.h"
 
+#include <Eigen/Geometry>
+
 using namespace std;
 using namespace Eigen;
 
 #define MAX_RECURSE 5
+#define MONTE_MAX_RECURSE 1
 
-Scene::Scene(int width, int height, string sceneFileName, int shadeType, int antiAliasOn, int debug, vector<pair<int,int>> indices)
+Scene::Scene(int width, int height, string sceneFileName, int monteCarloOn, int shadeType, int antiAliasOn, int debug, vector<pair<int,int>> indices)
 {
     pixelW = width;
     pixelH = height;
 
-    reflectCount = 0;
-    refractCount = 0;
+    this->reflectCount = 0;
+    this->refractCount = 0;
 
     // Start out in air.
     indexStack.push(1.0);
@@ -32,6 +35,9 @@ Scene::Scene(int width, int height, string sceneFileName, int shadeType, int ant
     
     // Determine whether anti-aliasing is on
     this->antiAliasOn = antiAliasOn;
+    
+    // Determine whether monte carlo is on
+    this->monteCarloOn = monteCarloOn;
     
     // ShadeType == 1 is Lambertian Shading.
     if (shadeType == 1)
@@ -311,7 +317,33 @@ color_t Scene::rayCastRefraction(Vector3d* Po, Vector3d d)
     return finalColor;
 }
 
-color_t Scene::rayCast(Vector3d* Po, Vector3d d)
+Vector3d Scene::cosineSampleHemisphere(double u1, double u2, Vector3d normal)
+{
+    Vector3d zAxis = {0.0, 0.0, 1.0};
+    
+    if (normal.dot(zAxis) < 0.0)
+    {
+        zAxis *= -1.0;
+    }
+    
+    double angle = acos(normal.dot(zAxis));
+    Vector3d axis = zAxis.cross(normal);
+    
+    AngleAxis<double> rot = AngleAxis<double>(angle, axis);
+    
+    Matrix3d rotMatrix = rot.toRotationMatrix();
+    
+    double r = sqrt(u1);
+    double theta = 2 * M_PI * u2;
+    double x = r * cos(theta);
+    double y = r * sin(theta);
+    
+    Vector3d newD = Vector3d(x, y, sqrt(1.0 - u1)).normalized();
+    
+    return (rotMatrix * newD).normalized();
+}
+
+color_t Scene::rayCast(Vector3d* Po, Vector3d d, int monteCarloCount)
 {
     double reflectRatio, refractRatio;
     Vector3d hitPoint, N;
@@ -351,10 +383,80 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
             << hitPoint.x() << ", " << hitPoint.y() << ", " << hitPoint.z() << "}" << endl;
         }
         
-        // Get the local shaded color of the object.
-        finalColor = shader->getLocalColor(Po, d, closestObject);
+        if (monteCarloOn)
+        {
+            // Get the local shaded color of the object monte carlo style.
+            finalColor = shader->getLocalColorNoAmbient(Po, d, closestObject);
+        }
+        else
+        {
+            // Get the local shaded color of the object.
+            finalColor = shader->getLocalColor(Po, d, closestObject);
+        }
         
-        if ((reflectRatio > 0.0 || closestObject->getHitObject()->refraction == 1.0) && reflectCount++ < MAX_RECURSE)
+        // If monte carlo, don't do reflect or refract.
+        if (monteCarloOn && monteCarloCount < MONTE_MAX_RECURSE)
+        {
+            int numOfRays = 0;
+            
+            if (monteCarloCount == 0)
+            {
+                numOfRays = 128;
+                monteCarloCount = 1;
+            }
+            else if (monteCarloCount == 1)
+            {
+                numOfRays = 32;
+                monteCarloCount = 2;
+            }
+            else
+            {
+                numOfRays = 16;
+                monteCarloCount = 3;
+            }
+            
+            color_t sumColor = {0.0, 0.0, 0.0, 0.0};
+            for (int i = 0; i < numOfRays; i++)
+            {
+                double u1 = rand() / (RAND_MAX + 1.0);
+                double u2 = rand() / (RAND_MAX + 1.0);
+                
+                Vector3d newD = cosineSampleHemisphere(u1, u2, N);
+                
+                Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
+                // Move the ray a little forward.
+                *newP = *newP + 0.00001 * newD;
+                
+                rtnClr = rayCast(newP, newD, monteCarloCount);
+                delete newP;
+                
+                sumColor.r += rtnClr.r;
+                sumColor.g += rtnClr.g;
+                sumColor.b += rtnClr.b;
+            }
+            
+            if (sumColor.r != 0.0 && sumColor.g != 0.0 && sumColor.b != 0.0)
+            {
+//                if (finalColor.r == 0.0 && finalColor.g == 0.0 && finalColor.b == 0.0)
+//                {
+//                    finalColor.r = (finalColor.r + sumColor.r) / numOfRays;
+//                    finalColor.g = (finalColor.g + sumColor.g) / numOfRays;
+//                    finalColor.b = (finalColor.b + sumColor.b) / numOfRays;
+//                }
+//                else
+//                {
+//                    finalColor.r = (finalColor.r * sumColor.r) / numOfRays;
+//                    finalColor.g = (finalColor.g * sumColor.g) / numOfRays;
+//                    finalColor.b = (finalColor.b * sumColor.b) / numOfRays;
+                //}
+                finalColor.r += sumColor.r / numOfRays;
+                finalColor.g += sumColor.g / numOfRays;
+                finalColor.b += sumColor.b / numOfRays;
+            }
+        }
+
+        // Check if reflective material.
+        if (!monteCarloOn && (reflectRatio > 0.0 || closestObject->getHitObject()->refraction == 1.0) && reflectCount++ < MAX_RECURSE)
         {
             Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
             Vector3d reflectRay = (d + 2.0 * N.dot(-d) * N).normalized();
@@ -398,7 +500,8 @@ color_t Scene::rayCast(Vector3d* Po, Vector3d d)
             }
         }
         
-        if (closestObject->getHitObject()->refraction == 1.0 && refractCount++ < MAX_RECURSE)
+        // Check if refractive material.
+        if (!monteCarloOn && closestObject->getHitObject()->refraction == 1.0 && refractCount++ < MAX_RECURSE)
         {
             Vector3d* newP = new Vector3d(hitPoint.x(), hitPoint.y(), hitPoint.z());
             Vector3d refractRay;
@@ -493,6 +596,7 @@ void Scene::render()
     
     for (int i = 0; i < pixelW; i++)
     {
+        cout << "Percentage: " << ((double)i / (double)pixelW) * 100.0 << endl;
         for (int j = 0; j < pixelH; j++)
         {
             color_t finalColor {0.0, 0.0, 0.0, 0.0};
@@ -546,7 +650,7 @@ void Scene::render()
                             {
                                 if (j == testPixels[ndx].second)
                                 {
-                                    color_t oneColor = rayCast(Po, d);
+                                    color_t oneColor = rayCast(Po, d, 0);
                                     finalColor.r += oneColor.r;
                                     finalColor.g += oneColor.g;
                                     finalColor.b += oneColor.b;
@@ -556,7 +660,7 @@ void Scene::render()
                     }
                     else
                     {
-                        color_t oneColor = rayCast(Po, d);
+                        color_t oneColor = rayCast(Po, d, 0);
                         finalColor.r += oneColor.r;
                         finalColor.g += oneColor.g;
                         finalColor.b += oneColor.b;
@@ -626,7 +730,7 @@ void Scene::render()
                                 cout << "----" << endl;
                                 cout << "Iteration type: Primary" << endl;
                                 
-                                color_t finalColor = rayCast(Po, d);
+                                color_t finalColor = rayCast(Po, d, 0);
                                 
                                 cout << "Final Color: <" << finalColor.r * 255.0 << ", " << finalColor.g * 255.0
                                 << ", " << finalColor.b * 255.0 << ">" << endl;
@@ -640,7 +744,7 @@ void Scene::render()
                 else
                 {
                     // Raycast returns the color of the pixel.
-                    image->pixel(i, j, rayCast(Po, d));
+                    image->pixel(i, j, rayCast(Po, d, 0));
                 }
             }
         }

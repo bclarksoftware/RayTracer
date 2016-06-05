@@ -10,7 +10,7 @@
 
 using namespace std;
 
-int width, height, shadeType, antiAliasOn, debug;
+int width, height, shadeType, monteCarloOn, antiAliasOn, debug;
 vector<pair<int, int>> indices;
 string sceneFileName;
 shared_ptr<Scene> scene;
@@ -58,13 +58,28 @@ int main( int argc, const char* argv[] )
             return 0;
         }
         
-        // Anti-Aliasing argument.
-        if (argc == 5)
+        // Monte-Carlo argument.
+        if (argc >= 5)
         {
-            istringstream antiAliasArg(argv[4]);
+            istringstream monteCarloArg(argv[4]);
+            if (!(monteCarloArg >> monteCarloOn) || monteCarloOn < 0 || monteCarloOn > 1)
+            {
+                cerr << "Invalid Value for Monte Carlo: " << argv[4] << '\n';
+                return 0;
+            }
+        }
+        else
+        {
+            monteCarloOn = 0;
+        }
+        
+        // Anti-Aliasing argument.
+        if (argc >= 6)
+        {
+            istringstream antiAliasArg(argv[5]);
             if (!(antiAliasArg >> antiAliasOn) || antiAliasOn < 0 || antiAliasOn > 1)
             {
-                cerr << "Invalid Value for Anti-Aliasing: " << argv[4] << '\n';
+                cerr << "Invalid Value for Anti-Aliasing: " << argv[5] << '\n';
                 return 0;
             }
         }
@@ -74,12 +89,12 @@ int main( int argc, const char* argv[] )
         }
         
         // Type of shading argument.
-        if (argc == 6)
+        if (argc >= 7)
         {
-            istringstream shadingArg(argv[5]);
+            istringstream shadingArg(argv[6]);
             if (!(shadingArg >> shadeType) || shadeType < 0 || shadeType > 1)
             {
-                cerr << "Invalid number " << argv[5] << '\n';
+                cerr << "Invalid number " << argv[6] << '\n';
                 return 0;
             }
         }
@@ -89,12 +104,12 @@ int main( int argc, const char* argv[] )
         }
         
         // Debugging argument.
-        if (argc == 7)
+        if (argc >= 8)
         {
-            istringstream debugArg(argv[6]);
+            istringstream debugArg(argv[7]);
             if (!(debugArg >> debug) || debug < 0 || debug > 1)
             {
-                cerr << "Invalid Value for Debug Mode: " << argv[6] << '\n';
+                cerr << "Invalid Value for Debug Mode: " << argv[7] << '\n';
                 return 0;
             }
             else
@@ -108,9 +123,9 @@ int main( int argc, const char* argv[] )
         }
     }
     
-    cout << "Width: " << width << ", Height: " << height << ", File: " << sceneFileName << ", Anti-Alias: " << antiAliasOn << ", ShadeType: " << shadeType << ", Debugging?: " << debug << "\n" << endl;
+    cout << "Width: " << width << ", Height: " << height << ", File: " << sceneFileName << ", Monte Carlo: " << monteCarloOn << ", Anti-Alias: " << antiAliasOn << ", ShadeType: " << shadeType << ", Debugging?: " << debug << "\n" << endl;
     
-    scene = make_shared<Scene>(width, height, sceneFileName, shadeType, antiAliasOn, debug, indices);
+    scene = make_shared<Scene>(width, height, sceneFileName, monteCarloOn, shadeType, antiAliasOn, debug, indices);
     
     scene->parseScene();
     

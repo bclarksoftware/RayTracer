@@ -4,8 +4,9 @@
  * Class:  CPE 473              *
  *===============================
 
-COMPLETENESS OF PROGRAM 4b:
- - Need to transform bounding boxes and use BVH to compute shadows.
+COMPLETENESS OF PROGRAM 5:
+ - Everything is working, but it is slow. You can use my_scene2.pov 
+   to see what I created!
 
 HOW TO COMPILE:
    1. Set 'EIGEN3_INCLUDE_DIR' environment variable to point 

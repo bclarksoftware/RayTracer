@@ -95,59 +95,27 @@ shared_ptr<RTIntersectObject> RTBox::getIntersection(Vector3d Po, Vector3d d)
     
     for (int ndx = 0; ndx < 3; ndx++)
     {
-        /*if (d[ndx] == 0.0)
+        double t1 = (corner1[ndx] - Po[ndx]) / d[ndx];
+        double t2 = (corner2[ndx] - Po[ndx]) / d[ndx];
+            
+        // Swap values if t2 < t1.
+        if (t2 < t1)
         {
-            if (ndx == 0)
-            {
-                cout << "dx == 0" << endl;
-                // Parallel along z axis hitting xy plane
-                if (Po[ndx] >= corner1[ndx] && Po[ndx] <= corner2[ndx] && Po[1] < corner2[1])
-                {
-                    continue;
-                }
-            }
-            else if (ndx == 1)
-            {
-                cout << "dy == 0" << endl;
-                // Parallel along x axis hitting yz plane.
-                if (Po[ndx] >= corner1[ndx] && Po[ndx] <= corner2[ndx] && Po[2] < corner2[2])
-                {
-                    continue;
-                }
-            }
-            else if (ndx == 2)
-            {
-                cout << "dz == 0" << endl;
-                // Parallel along y axis hitting xz plane.
-                if (Po[ndx] >= corner1[ndx] && Po[ndx] <= corner2[ndx] && Po[0] < corner2[0])
-                {
-                    continue;
-                }
-            }
+            double temp = t1;
+            t1 = t2;
+            t2 = temp;
         }
-        else
-        {*/
-            double t1 = (corner1[ndx] - Po[ndx]) / d[ndx];
-            double t2 = (corner2[ndx] - Po[ndx]) / d[ndx];
             
-            // Swap values if t2 < t1.
-            if (t2 < t1)
-            {
-                double temp = t1;
-                t1 = t2;
-                t2 = temp;
-            }
-            
-            if (t1 > tgMin)
-            {
-                tgMin = t1;
-            }
-            if (t2 < tgMax)
-            {
-                tgMax = t2;
-            }
+        if (t1 > tgMin)
+        {
+            tgMin = t1;
         }
-    //}
+        
+        if (t2 < tgMax)
+        {
+            tgMax = t2;
+        }
+    }
     
     if (tgMin <= tgMax && tgMax >= 0)
     {
