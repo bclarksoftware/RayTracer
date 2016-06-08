@@ -19,13 +19,23 @@ HOW TO COMPILE:
 
 HOW TO RUN:
    - If running in terminal:
-   - ./raytrace 640 480 ../resources/spheres.pov 
-      [0 || 1](Shading) [0 || 1](Debug)
+   - ./raytrace 640 480 ../resources/spheres.pov
+      [0 || 1](GI)
+      [0 || 1](Anti-Aliasing) 
+      [0 || 1](Shading) 
+      [0 || 1](Debug Mode)
    - If running in xcode:
    - Edit your scheme to reflect the arguments above.
 
+ - 0 You don't want Global Illumination
+ - 1 You do want Global Illumination
+
+ - 0 You don't want anti-aliasing
+ - 1 You want anti-aliasing 
+
  - 0 Shading as argument indicates Blinn-Phong Shading.
  - 1 Shading as argument indicates Lambertian (Diffuse) Shading.
+
  - 0 Debug as argument indicates no text output.
  - 1 Debug as argument indicates text output.
 
